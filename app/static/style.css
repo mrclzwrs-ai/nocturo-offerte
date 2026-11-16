@@ -163,3 +163,12 @@ table.lijst th.r,.publiek th.r{text-align:right}
 .stappen li.nu::before{content:"›  "}
 .stappen li.nu::after{content:"…";animation:knipper 1s steps(2) infinite}
 @keyframes knipper{50%{opacity:0}}
+/* uil op het wachtscherm, met oogleden */
+.bezig .uilkop{position:relative;height:110px;aspect-ratio:256/207;animation:adem 1.8s ease-in-out infinite}
+.bezig .uilkop img{height:100%;width:100%;animation:none;display:block}
+.uilkop .oog{position:absolute;width:14%;height:17.4%;top:51.2%;border-radius:50%;overflow:hidden}
+.uilkop .oog.l{left:24.25%}
+.uilkop .oog.r{left:61.75%}
+.uilkop .oog i{position:absolute;inset:0;background:#0A1319;border-bottom:2px solid #3FE0C5;border-radius:0 0 50% 50%/0 0 30% 30%;transform:translateY(-104%);transition:transform .09s ease-in}
+.uilkop.dicht .oog i{transform:translateY(0)}
+.knop.uit{opacity:.6}

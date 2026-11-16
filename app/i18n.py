@@ -68,6 +68,7 @@ _UI = {
     "make_quote": ["Maak de offerte", "Create the quote", "Angebot erstellen", "Créer le devis", "Crear el presupuesto"],
     "dictate": ["Inspreken", "Dictate", "Diktieren", "Dicter", "Dictar"],
     "listening": ["Ik luister… tik nogmaals om te stoppen", "Listening… tap again to stop", "Ich höre zu… nochmal tippen zum Stoppen", "J'écoute… touchez à nouveau pour arrêter", "Escuchando… toca de nuevo para parar"],
+    "sound": ["Geluid", "Sound", "Ton", "Son", "Sonido"],
     "working": ["Nocturo rekent je offerte uit…", "Nocturo is working out your quote…", "Nocturo berechnet Ihr Angebot…", "Nocturo calcule votre devis…", "Nocturo está calculando tu presupuesto…"],
     "empty_pricelist_hint": [
         "Tip: zet eerst je producten en prijzen in de prijslijst, dan rekent Nocturo met jouw prijzen.",

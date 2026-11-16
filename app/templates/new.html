@@ -2,7 +2,7 @@
 {% block content %}
 <h1>{{ T('nav_new') }}</h1>
 <p class="sub">{{ T('tagline') }}</p>
-{% if error %}<div class="melding fout">{{ error }}</div>{% endif %}
+<div class="melding fout" id="fout" {{ '' if error else 'hidden' }}>{{ error or '' }}</div>
 {% if n_products == 0 %}<div class="melding fout">{{ T('empty_pricelist_hint') }} <a href="/prijslijst">{{ T('nav_products') }} →</a></div>{% endif %}
 
 <form method="post" action="/nieuw" id="f">
@@ -18,25 +18,110 @@
       </div>
     </div>
   </div>
-  <button class="knop groot">{{ T('make_quote') }} →</button>
+  <div class="knoppen">
+    <button class="knop groot" id="maak">{{ T('make_quote') }} →</button>
+    <button type="button" class="knop lijn klein" id="geluid" title="{{ T('sound') }}">🔊 {{ T('sound') }}</button>
+  </div>
 </form>
 
-<div class="bezig" id="bezig"><img src="/static/uil.png" alt=""><div class="scan"><i></i></div>
+<div class="bezig" id="bezig">
+  <div class="uilkop" id="uilkop">
+    <img src="/static/uil.png" alt="">
+    <span class="oog l"><i></i></span><span class="oog r"><i></i></span>
+  </div>
+  <div class="scan"><i></i></div>
   <ul class="stappen" id="stappen">{% for s in steps %}<li>{{ s }}</li>{% endfor %}</ul>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-document.getElementById('f').addEventListener('submit',function(){
-  document.getElementById('bezig').classList.add('aan');
-  var li=document.querySelectorAll('#stappen li'), i=0;
+(function(){
+  var form=document.getElementById('f'), bezig=document.getElementById('bezig'), fout=document.getElementById('fout');
+  var knop=document.getElementById('geluid');
+
+  /* ---- geluid aan/uit (onthouden in de browser) ---- */
+  var geluidAan=true;
+  try{ geluidAan = localStorage.getItem('nocturo_geluid')!=='uit'; }catch(e){}
+  function toonGeluid(){ knop.textContent=(geluidAan?'🔊 ':'🔇 ')+{{ T('sound')|tojson }}; knop.classList.toggle('uit',!geluidAan); }
+  toonGeluid();
+  knop.onclick=function(){ geluidAan=!geluidAan; try{localStorage.setItem('nocturo_geluid',geluidAan?'aan':'uit');}catch(e){} toonGeluid(); };
+
+  /* ---- oehoe, zelf gemaakt met de Web Audio API ---- */
+  var ctx=null;
+  function maakKlaar(){ // moet tijdens de tik gebeuren, anders mag de iPad geen geluid maken
+    if(!geluidAan) return;
+    try{
+      ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+      if(ctx.state==='suspended') ctx.resume();
+      var b=ctx.createBuffer(1,1,22050), s=ctx.createBufferSource(); s.buffer=b; s.connect(ctx.destination); s.start(0);
+    }catch(e){ ctx=null; }
+  }
+  function roep(start, duur, hoog, laag, sterkte){
+    var o=ctx.createOscillator(), o2=ctx.createOscillator(), g=ctx.createGain(), f=ctx.createBiquadFilter();
+    var vib=ctx.createOscillator(), vg=ctx.createGain(), g2=ctx.createGain();
+    o.type='sine'; o2.type='triangle'; f.type='lowpass'; f.frequency.value=900; g2.gain.value=0.12;
+    o.frequency.setValueAtTime(hoog,start); o.frequency.exponentialRampToValueAtTime(laag,start+duur);
+    o2.frequency.setValueAtTime(hoog*2,start); o2.frequency.exponentialRampToValueAtTime(laag*2,start+duur);
+    vib.frequency.value=6; vg.gain.value=3; vib.connect(vg); vg.connect(o.frequency);
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(f); f.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001,start);
+    g.gain.exponentialRampToValueAtTime(sterkte,start+0.07);
+    g.gain.setValueAtTime(sterkte,start+duur*0.55);
+    g.gain.exponentialRampToValueAtTime(0.0001,start+duur);
+    [o,o2,vib].forEach(function(x){x.start(start);x.stop(start+duur+0.05);});
+  }
+  function oehoe(){
+    if(!geluidAan||!ctx) return 0;
+    try{
+      var t=ctx.currentTime+0.05;
+      roep(t,      0.32, 330, 300, 0.45);  // oe
+      roep(t+0.45, 0.85, 345, 280, 0.6);   // hoe
+      return 1400;
+    }catch(e){ return 0; }
+  }
+  window.nocturoOehoe=function(){ maakKlaar(); return oehoe(); };
+
+  /* ---- de uil knippert af en toe ---- */
+  var kop=document.getElementById('uilkop'), knipTimer=null;
+  function knipper(n){
+    kop.classList.add('dicht');
+    setTimeout(function(){ kop.classList.remove('dicht'); if(n>1) setTimeout(function(){knipper(n-1);},160); },130);
+  }
+  function plan(){ knipTimer=setTimeout(function(){ knipper(Math.random()<0.3?2:1); plan(); }, 1800+Math.random()*2800); }
+
+  /* ---- stappen ---- */
+  var li=document.querySelectorAll('#stappen li'), i=0, stapTimer=null;
   function volgende(){
     if(i>0) li[i-1].className='klaar';
-    if(i<li.length){ li[i].className='nu'; i++; setTimeout(volgende, i<li.length?2600:99999); }
+    if(i<li.length){ li[i].className='nu'; i++; if(i<li.length) stapTimer=setTimeout(volgende,2600); }
   }
-  volgende();
-});
-window.addEventListener('pageshow',function(){document.getElementById('bezig').classList.remove('aan')});
+  function allesKlaar(cb){
+    clearTimeout(stapTimer);
+    (function snel(){ if(i<=li.length){ if(i>0) li[i-1].className='klaar'; if(i<li.length){li[i].className='nu';} i++; setTimeout(snel,140);} else cb(); })();
+  }
+  function reset(){
+    clearTimeout(stapTimer); clearTimeout(knipTimer); i=0;
+    li.forEach(function(x){x.className='';}); bezig.classList.remove('aan');
+  }
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(!document.getElementById('wish').value.trim()) return;
+    maakKlaar();
+    fout.hidden=true; reset(); bezig.classList.add('aan'); volgende(); plan();
+    fetch('/nieuw',{method:'POST',body:new FormData(form),headers:{'X-Nocturo':'1'},credentials:'same-origin'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.url && !d.error){
+          allesKlaar(function(){ var wacht=oehoe(); setTimeout(function(){ location.href=d.url; }, wacht+300); });
+        } else if(d.url){ location.href=d.url; }
+        else { reset(); fout.textContent=d.error||{{ T('ai_error')|tojson }}; fout.hidden=false; window.scrollTo(0,0); }
+      })
+      .catch(function(){ reset(); fout.textContent={{ T('ai_error')|tojson }}; fout.hidden=false; });
+  });
+  window.addEventListener('pageshow',function(e){ if(e.persisted) reset(); });
+})();
+
 (function(){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return;
   var b=document.getElementById('mic'), l=document.getElementById('micl'), ta=document.getElementById('wish');

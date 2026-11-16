@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
@@ -295,26 +295,32 @@ def new_page(request: Request, db=Depends(get_db)):
 @app.post("/nieuw")
 def new_quote(request: Request, wish: str = Form(...), qlang: str = Form("nl"), db=Depends(get_db)):
     c, lang = company_ctx(request, db)
+    via_js = request.headers.get("x-nocturo") == "1"  # wachtscherm wacht zelf op het antwoord
+
+    def fout(msg, url=None):
+        if via_js:
+            return JSONResponse({"error": msg, "url": url})
+        if url:
+            flash(request, msg, "fout")
+            return go(url)
+        n_products = db.query(Product).filter(Product.company_id == c.id).count()
+        return render(request, "new.html", c, lang, n_products=n_products, qlang=qlang, wish=wish, error=msg)
+
     if not c.access_ok():
-        flash(request, t("trial_over", lang), "fout")
-        return go("/offertes")
+        return fout(t("trial_over", lang), "/offertes")
     wish = (wish or "").strip()[:8000]
     if not wish:
-        return go("/nieuw")
+        return fout(t("what_wants", lang))
     qlang = qlang if qlang in LANGS else lang
     ip = request.client.host if request.client else "?"
     if not ai_allowed(f"demo:{ip}" if c.is_demo else f"c:{c.id}", 8 if c.is_demo else 120):
-        n_products = db.query(Product).filter(Product.company_id == c.id).count()
-        return render(request, "new.html", c, lang, n_products=n_products, qlang=qlang, wish=wish,
-                      error=t("ai_error", lang) + " (limit)")
+        return fout(t("ai_error", lang) + " (limit)")
     products = db.query(Product).filter(Product.company_id == c.id).order_by(Product.name).all()
     try:
         data = ai.make_quote(c, products, wish, qlang)
     except ai.AIError as e:
         print("AI-fout:", e, flush=True)
-        n_products = len(products)
-        return render(request, "new.html", c, lang, n_products=n_products, qlang=qlang, wish=wish,
-                      error=t("ai_error", lang))
+        return fout(t("ai_error", lang))
     now = datetime.utcnow()
     q = Quote(
         company_id=c.id, number=f"{c.prefix or ''}{now.year}-{c.next_number:03d}", status="concept", lang=qlang,
@@ -328,6 +334,8 @@ def new_quote(request: Request, wish: str = Form(...), qlang: str = Form("nl"), 
     c.next_number = (c.next_number or 1) + 1
     db.add(q)
     db.commit()
+    if via_js:
+        return JSONResponse({"url": f"/offerte/{q.id}"})
     return go(f"/offerte/{q.id}")
 
 
