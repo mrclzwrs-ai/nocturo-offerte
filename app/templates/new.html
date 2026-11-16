@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_uil.html" import uil %}
 {% block content %}
 <h1>{{ T('nav_new') }}</h1>
 <p class="sub">{{ T('tagline') }}</p>
@@ -25,10 +26,7 @@
 </form>
 
 <div class="bezig" id="bezig">
-  <div class="uilkop" id="uilkop">
-    <img src="/static/uil.png" alt="">
-    <span class="oog l"><i></i></span><span class="oog r"><i></i></span>
-  </div>
+  <div class="uilkop">{{ uil("wachtuil") }}</div>
   <div class="scan"><i></i></div>
   <ul class="stappen" id="stappen">{% for s in steps %}<li>{{ s }}</li>{% endfor %}</ul>
 </div>
@@ -81,13 +79,9 @@
   }
   window.nocturoOehoe=function(){ maakKlaar(); return oehoe(); };
 
-  /* ---- de uil knippert af en toe ---- */
-  var kop=document.getElementById('uilkop'), knipTimer=null;
-  function knipper(n){
-    kop.classList.add('dicht');
-    setTimeout(function(){ kop.classList.remove('dicht'); if(n>1) setTimeout(function(){knipper(n-1);},160); },130);
-  }
-  function plan(){ knipTimer=setTimeout(function(){ knipper(Math.random()<0.3?2:1); plan(); }, 1800+Math.random()*2800); }
+  /* ---- de uil leest mee en knippert af en toe ---- */
+  var wachtUil=new NocturoUil(document.getElementById('wachtuil'));
+  function plan(){ wachtUil.lees(); }
 
   /* ---- stappen ---- */
   var li=document.querySelectorAll('#stappen li'), i=0, stapTimer=null;
@@ -100,7 +94,7 @@
     (function snel(){ if(i<=li.length){ if(i>0) li[i-1].className='klaar'; if(i<li.length){li[i].className='nu';} i++; setTimeout(snel,140);} else cb(); })();
   }
   function reset(){
-    clearTimeout(stapTimer); clearTimeout(knipTimer); i=0;
+    clearTimeout(stapTimer); wachtUil.stop(); i=0;
     li.forEach(function(x){x.className='';}); bezig.classList.remove('aan');
   }
 
@@ -113,7 +107,7 @@
       .then(function(r){return r.json();})
       .then(function(d){
         if(d.url && !d.error){
-          allesKlaar(function(){ var wacht=oehoe(); setTimeout(function(){ location.href=d.url; }, wacht+300); });
+          allesKlaar(function(){ wachtUil.stop(); wachtUil.kijk(0,-0.3); var wacht=oehoe(); setTimeout(function(){ location.href=d.url; }, wacht+300); });
         } else if(d.url){ location.href=d.url; }
         else { reset(); fout.textContent=d.error||{{ T('ai_error')|tojson }}; fout.hidden=false; window.scrollTo(0,0); }
       })

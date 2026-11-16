@@ -172,3 +172,8 @@ table.lijst th.r,.publiek th.r{text-align:right}
 .uilkop .oog i{position:absolute;inset:0;background:#0A1319;border-bottom:2px solid #3FE0C5;border-radius:0 0 50% 50%/0 0 30% 30%;transform:translateY(-104%);transition:transform .09s ease-in}
 .uilkop.dicht .oog i{transform:translateY(0)}
 .knop.uit{opacity:.6}
+/* uil als svg (met ogen) */
+svg.uil{display:block;overflow:visible}
+.merk svg.uil{height:34px;width:auto;aspect-ratio:256/207;filter:drop-shadow(0 0 8px rgba(63,224,197,.35))}
+.inlog .logo svg.uil{height:76px;width:auto;aspect-ratio:256/207;margin:0 auto;filter:drop-shadow(0 0 18px rgba(63,224,197,.35))}
+.bezig .uilkop svg.uil{height:100%;width:100%}

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_uil.html" import uil %}
 {% block content %}
 <div class="inlog">
-  <div class="logo"><img src="/static/uil.png" alt=""><b>NOCTURO</b><span>{{ T('app_name')|upper }}</span></div>
+  <div class="logo">{{ uil("grooteuil") }}<b>NOCTURO</b><span>{{ T('app_name')|upper }}</span></div>
   <p class="tag">{{ T('tagline') }}</p>
   <div class="paneel">
     <h2>{{ T('start_trial') }}</h2>
@@ -24,3 +25,5 @@
   <p class="of">{{ T('have_account') }} <a href="/login">{{ T('login') }}</a> · <a href="/demo">{{ T('try_demo') }}</a></p>
 </div>
 {% endblock %}
+
+{% block scripts %}<script>new NocturoUil(document.getElementById("grooteuil")).volg();</script>{% endblock %}

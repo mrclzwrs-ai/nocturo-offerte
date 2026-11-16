@@ -1,0 +1,19 @@
+{# De Nocturo-uil met dezelfde ogen als op nocturoapps.com: oogbol, pupil en oogleden.
+   Coördinaten horen bij uil.png (256 × 207). #}
+{% macro uil(id, cls='') -%}
+<svg class="uil {{ cls }}" id="{{ id }}" viewBox="0 0 256 207" aria-hidden="true">
+  <defs>
+    <clipPath id="{{ id }}-cl"><circle cx="81" cy="126" r="18.5"/></clipPath>
+    <clipPath id="{{ id }}-cr"><circle cx="173" cy="126" r="18.5"/></clipPath>
+  </defs>
+  <image href="/static/uil.png" x="0" y="0" width="256" height="207"/>
+  <g clip-path="url(#{{ id }}-cl)">
+    <g class="pupil"><circle cx="81" cy="126" r="11.9" fill="#38DBC5"/><circle cx="81" cy="126" r="4" fill="#041219"/></g>
+    <g class="lid"><rect x="58" y="67.5" width="46" height="40" fill="#0A1319"/><path d="M60 107.5 Q81 114 102 107.5" fill="none" stroke="#38DBC5" stroke-width="2.4" stroke-linecap="round"/></g>
+  </g>
+  <g clip-path="url(#{{ id }}-cr)">
+    <g class="pupil"><circle cx="173" cy="126" r="11.9" fill="#38DBC5"/><circle cx="173" cy="126" r="4" fill="#041219"/></g>
+    <g class="lid"><rect x="150" y="67.5" width="46" height="40" fill="#0A1319"/><path d="M152 107.5 Q173 114 194 107.5" fill="none" stroke="#38DBC5" stroke-width="2.4" stroke-linecap="round"/></g>
+  </g>
+</svg>
+{%- endmacro %}
