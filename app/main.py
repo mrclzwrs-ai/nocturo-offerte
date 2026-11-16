@@ -16,7 +16,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from . import ai
 from .calc import lines_of, notes_of, totals
-from .i18n import LANGS, LANG_NAMES, d, date_str, money, number, t
+from .i18n import LANGS, LANG_NAMES, STEPS, d, date_str, money, number, t
 from .mailer import mail_ready, send_quote_mail
 from .models import Company, Product, Quote, SessionLocal, init_db
 from .seed import DEMO_EMAIL, ensure_demo
@@ -108,7 +108,7 @@ def render(request: Request, name: str, company=None, lang=None, **ctx):
     ctx.update(
         request=request, c=company, lang=lang, langs=LANGS, lang_names=LANG_NAMES,
         T=lambda k, **kw: t(k, lang, **kw), MONEY=lambda v: money(v, lang), NUM=lambda v: number(v, lang),
-        DATE=lambda v: date_str(v, lang), flash=flash, is_admin=bool(company and ADMIN_EMAIL and company.email == ADMIN_EMAIL),
+        DATE=lambda v: date_str(v, lang), flash=flash, steps=STEPS.get(lang, STEPS['nl']), is_admin=bool(company and ADMIN_EMAIL and company.email == ADMIN_EMAIL),
     )
     return templates.TemplateResponse(request, name, ctx)
 

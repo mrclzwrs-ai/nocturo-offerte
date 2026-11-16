@@ -247,6 +247,25 @@ _DOC = {
 }
 
 
+STEPS = {
+    "nl": ["De wens van de klant lezen", "Naam en e-mail van de klant opzoeken", "In je prijslijst snuffelen",
+           "De juiste staffelprijs zoeken", "Vaste kosten erbij: opstartkosten, verzending", "Btw uitrekenen",
+           "Een persoonlijke inleiding schrijven", "Nog één keer alles nalopen"],
+    "en": ["Reading the customer's request", "Finding the customer's name and email", "Digging through your price list",
+           "Picking the right volume price", "Adding fixed costs: setup, shipping", "Working out the VAT",
+           "Writing a personal introduction", "Double-checking everything"],
+    "de": ["Den Kundenwunsch lesen", "Name und E-Mail des Kunden heraussuchen", "In Ihrer Preisliste stöbern",
+           "Den passenden Staffelpreis suchen", "Fixkosten dazu: Einrichtung, Versand", "Mehrwertsteuer berechnen",
+           "Eine persönliche Einleitung schreiben", "Alles noch einmal prüfen"],
+    "fr": ["Lecture de la demande du client", "Recherche du nom et de l'e-mail du client", "Exploration de vos tarifs",
+           "Choix du bon prix dégressif", "Ajout des frais fixes : mise en route, livraison", "Calcul de la TVA",
+           "Rédaction d'une introduction personnelle", "Dernière vérification"],
+    "es": ["Leyendo la petición del cliente", "Buscando el nombre y correo del cliente", "Revisando tu lista de precios",
+           "Eligiendo el precio por volumen correcto", "Añadiendo costes fijos: preparación, envío", "Calculando el IVA",
+           "Escribiendo una introducción personal", "Revisándolo todo una última vez"],
+}
+
+
 def _idx(lang: str) -> int:
     return LANGS.index(lang) if lang in LANGS else 0
 

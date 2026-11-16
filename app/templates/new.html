@@ -21,11 +21,21 @@
   <button class="knop groot">{{ T('make_quote') }} →</button>
 </form>
 
-<div class="bezig" id="bezig"><img src="/static/uil.png" alt=""><div class="scan"><i></i></div><p>{{ T('working') }}</p></div>
+<div class="bezig" id="bezig"><img src="/static/uil.png" alt=""><div class="scan"><i></i></div>
+  <ul class="stappen" id="stappen">{% for s in steps %}<li>{{ s }}</li>{% endfor %}</ul>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>
-document.getElementById('f').addEventListener('submit',function(){document.getElementById('bezig').classList.add('aan')});
+document.getElementById('f').addEventListener('submit',function(){
+  document.getElementById('bezig').classList.add('aan');
+  var li=document.querySelectorAll('#stappen li'), i=0;
+  function volgende(){
+    if(i>0) li[i-1].className='klaar';
+    if(i<li.length){ li[i].className='nu'; i++; setTimeout(volgende, i<li.length?2600:99999); }
+  }
+  volgende();
+});
 window.addEventListener('pageshow',function(){document.getElementById('bezig').classList.remove('aan')});
 (function(){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return;
