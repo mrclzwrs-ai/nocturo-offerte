@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="knoppen" style="justify-content:space-between;margin-bottom:22px">
+  <div>
+    <h1>{{ T('nav_quotes') }}</h1>
+    {% set dl = c.trial_days_left() %}
+    {% if dl is not none and dl > 0 %}<div class="hint mono">{{ T('trial_left', n=dl) }}</div>{% endif %}
+  </div>
+  <a class="knop groot" href="/nieuw">+ {{ T('nav_new') }}</a>
+</div>
+
+<div class="tegels">
+  <div class="tegel"><div class="l">{{ T('open_quotes') }}</div><div class="w">{{ stats.open_n }}</div></div>
+  <div class="tegel"><div class="l">{{ T('open_value') }}</div><div class="w">{{ MONEY(stats.open_value) }}</div></div>
+  <div class="tegel turq"><div class="l">{{ T('accepted_month') }}</div><div class="w">{{ MONEY(stats.acc_value) }}<small>{{ stats.acc_n }}×</small></div></div>
+  <div class="tegel"><div class="l">{{ T('hit_rate') }}</div>
+    <div class="w">{{ stats.rate if stats.rate is not none else '—' }}{% if stats.rate is not none %}<small>%</small>{% endif %}</div>
+    <div class="balkje"><i style="width:{{ stats.rate or 0 }}%"></i></div></div>
+</div>
+
+<div class="paneel">
+  {% if rows %}
+  <table class="lijst">
+    <thead><tr><th>{{ T('number') }}</th><th>{{ T('customer') }}</th><th class="verberg-mobiel">{{ T('date') }}</th><th class="r">{{ T('amount') }}</th><th class="r">{{ T('status') }}</th></tr></thead>
+    <tbody>
+    {% for q, tot in rows %}
+      <tr class="klik" onclick="location.href='/offerte/{{ q.id }}'">
+        <td class="mono">{{ q.number }}</td>
+        <td><b>{{ q.customer_company or q.customer_name or '—' }}</b><div class="hint">{{ q.title }}</div></td>
+        <td class="verberg-mobiel mono">{{ DATE(q.date) }}</td>
+        <td class="r mono">{{ MONEY(tot.total) }}</td>
+        <td class="r"><span class="st {{ q.status }}">{{ T('st_' ~ q.status) }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="sub" style="margin:0">{{ T('no_quotes') }}</p>
+  {% endif %}
+</div>
+{% endblock %}

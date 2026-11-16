@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="{{ ql }}">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 18mm 16mm 20mm 16mm;
+    @bottom-center { content: "{{ D('made_with') }}"; font-family: Inter, 'DejaVu Sans', sans-serif; font-size: 7pt; color: #b4bcc4; } }
+  * { box-sizing: border-box; }
+  body { font-family: Inter, 'DejaVu Sans', Helvetica, Arial, sans-serif; color: #1d2731; font-size: 9.5pt; line-height: 1.45; margin: 0; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .logo img { max-height: 22mm; max-width: 60mm; }
+  .logo .naam { font-size: 16pt; font-weight: 700; color: {{ accent }}; }
+  .afz { text-align: right; font-size: 8.5pt; color: #5b6774; line-height: 1.5; }
+  .afz b { color: #1d2731; font-size: 9.5pt; }
+  h1 { font-size: 24pt; letter-spacing: 3px; color: {{ accent }}; margin: 14mm 0 2mm; font-weight: 700; }
+  .titel { font-size: 11pt; font-weight: 600; margin-bottom: 8mm; }
+  .blok { display: flex; justify-content: space-between; margin-bottom: 8mm; }
+  .klant { font-size: 9.5pt; line-height: 1.5; }
+  .klant .lbl, .meta .lbl { color: #8a96a3; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 1px; }
+  .meta table td { padding: 1px 0 1px 10px; }
+  .meta table td:first-child { color: #8a96a3; padding-left: 0; }
+  .intro { margin-bottom: 6mm; white-space: pre-line; }
+  table.regels { width: 100%; border-collapse: collapse; }
+  table.regels th { text-align: left; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 1px; color: #fff;
+    background: {{ accent }}; padding: 6px 8px; }
+  table.regels th.r { text-align: right; }
+  table.regels td { padding: 7px 8px; border-bottom: 1px solid #e6eaee; vertical-align: top; }
+  table.regels tr:nth-child(even) td { background: #f7f9fa; }
+  .r { text-align: right; white-space: nowrap; }
+  .leeg { color: #c0392b; font-style: italic; }
+  .tot { margin-top: 4mm; margin-left: auto; width: 75mm; }
+  .tot table { width: 100%; border-collapse: collapse; }
+  .tot td { padding: 3px 8px; }
+  .tot .eind td { border-top: 2px solid {{ accent }}; font-weight: 700; font-size: 12pt; padding-top: 6px; }
+  .slot { margin-top: 8mm; white-space: pre-line; }
+  .voorw { margin-top: 6mm; font-size: 8pt; color: #5b6774; white-space: pre-line; }
+  .akk { margin-top: 8mm; padding: 4mm; border: 1px solid #dfe5ea; border-left: 3px solid {{ accent }}; font-size: 8.5pt; }
+  .akk a { color: {{ accent }}; word-break: break-all; }
+  .gegeven { margin-top: 8mm; font-weight: 600; color: {{ accent }}; }
+  .klein { font-size: 7.5pt; color: #8a96a3; margin-top: 2mm; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="logo">
+      {% if c.logo_data %}<img src="{{ c.logo_data }}" alt="">{% else %}<div class="naam">{{ c.name }}</div>{% endif %}
+    </div>
+    <div class="afz">
+      <b>{{ c.name }}</b><br>
+      {% if c.address %}{{ c.address }}<br>{% endif %}
+      {% if c.postcode_city %}{{ c.postcode_city }}<br>{% endif %}
+      {% if c.country %}{{ c.country }}<br>{% endif %}
+      {% if c.phone %}{{ c.phone }}<br>{% endif %}
+      {% if c.email and not c.is_demo %}{{ c.email }}<br>{% endif %}
+      {% if c.website %}{{ c.website }}<br>{% endif %}
+      {% if c.coc %}{{ D('coc') }} {{ c.coc }}<br>{% endif %}
+      {% if c.vat_no %}{{ D('vat_no') }} {{ c.vat_no }}<br>{% endif %}
+      {% if c.iban %}{{ D('iban') }} {{ c.iban }}{% endif %}
+    </div>
+  </div>
+
+  <h1>{{ D('quote') }}</h1>
+  {% if q.title %}<div class="titel">{{ q.title }}</div>{% endif %}
+
+  <div class="blok">
+    <div class="klant">
+      <div class="lbl">{{ D('for') }}</div>
+      {% if q.customer_company %}<b>{{ q.customer_company }}</b><br>{% endif %}
+      {% if q.customer_name %}{{ q.customer_name }}<br>{% endif %}
+      {% if q.customer_address %}<span style="white-space:pre-line">{{ q.customer_address }}</span><br>{% endif %}
+      {% if q.customer_email %}{{ q.customer_email }}{% endif %}
+    </div>
+    <div class="meta">
+      <table>
+        <tr><td>{{ D('number') }}</td><td><b>{{ q.number }}</b></td></tr>
+        <tr><td>{{ D('date') }}</td><td>{{ DATE(q.date) }}</td></tr>
+        {% if q.valid_until %}<tr><td>{{ D('valid_until') }}</td><td>{{ DATE(q.valid_until) }}</td></tr>{% endif %}
+      </table>
+    </div>
+  </div>
+
+  {% if q.intro %}<div class="intro">{{ q.intro }}</div>{% endif %}
+
+  <table class="regels">
+    <thead><tr>
+      <th>{{ D('description') }}</th><th class="r">{{ D('qty') }}</th><th class="r">{{ D('price') }}</th>
+      <th class="r">{{ D('vat') }}</th><th class="r">{{ D('amount') }}</th>
+    </tr></thead>
+    <tbody>
+    {% for ln in lines %}
+      <tr>
+        <td>{{ ln.description }}</td>
+        <td class="r">{{ NUM(ln.qty) }}{% if ln.unit %} {{ ln.unit }}{% endif %}</td>
+        {% if ln.price is none %}
+          <td class="r leeg">—</td><td class="r">{{ NUM(ln.vat) }}%</td><td class="r leeg">—</td>
+        {% else %}
+          <td class="r">{{ MONEY(ln.price) }}</td><td class="r">{{ NUM(ln.vat) }}%</td>
+          <td class="r">{{ MONEY((ln.qty or 0) * ln.price) }}</td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="tot">
+    <table>
+      <tr><td>{{ D('subtotal') }}</td><td class="r">{{ MONEY(tot.subtotal) }}</td></tr>
+      {% for rate, amount in tot.vat_lines %}
+      <tr><td>{{ D('vat_line', p=NUM(rate)) }}</td><td class="r">{{ MONEY(amount) }}</td></tr>
+      {% endfor %}
+      <tr class="eind"><td>{{ D('total') }}</td><td class="r">{{ MONEY(tot.total) }}</td></tr>
+    </table>
+    <div class="klein r">{{ D('excl') }}</div>
+  </div>
+
+  {% if q.closing %}<div class="slot">{{ q.closing }}</div>{% endif %}
+  {% if c.terms %}<div class="voorw">{{ c.terms }}</div>{% endif %}
+
+  {% if q.status == 'akkoord' and q.decided_at %}
+    <div class="gegeven">✓ {{ D('accepted', d=DATE(q.decided_at), n=q.decided_by) }}</div>
+  {% elif public_url %}
+    <div class="akk">{{ D('accept_online') }}<br><a href="{{ public_url }}">{{ public_url }}</a></div>
+  {% endif %}
+</body>
+</html>

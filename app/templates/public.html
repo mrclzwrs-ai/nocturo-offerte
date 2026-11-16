@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{ D('quote')|capitalize }} {{ q.number }} · {{ co.name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css?v=1">
+<style>:root{--acc:{{ co.accent or '#0F8B78' }}}</style>
+</head>
+<body class="publiek">
+<div class="blad">
+  <div class="kop2">
+    <div>{% if co.logo_data %}<img src="{{ co.logo_data }}" alt="{{ co.name }}">{% else %}<b style="font-size:22px;color:var(--acc)">{{ co.name }}</b>{% endif %}</div>
+    <div class="klein" style="text-align:right">
+      <b style="color:#1d2731">{{ co.name }}</b><br>
+      {% if co.address %}{{ co.address }}<br>{% endif %}{% if co.postcode_city %}{{ co.postcode_city }}<br>{% endif %}
+      {% if co.phone %}{{ co.phone }}<br>{% endif %}{{ co.email if not co.is_demo else '' }}
+    </div>
+  </div>
+  <h1>{{ D('quote') }}</h1>
+  <div style="font-weight:600;font-size:17px">{{ q.title }}</div>
+  <div class="klein" style="margin:8px 0 18px">{{ D('number') }} <b>{{ q.number }}</b> · {{ D('date') }} {{ DATE(q.date) }}{% if q.valid_until %} · {{ D('valid_until') }} {{ DATE(q.valid_until) }}{% endif %}</div>
+  {% if q.customer_company or q.customer_name %}<div class="klein">{{ D('for') }}: <b style="color:#1d2731">{{ q.customer_company or q.customer_name }}</b>{% if q.customer_company and q.customer_name %} · {{ q.customer_name }}{% endif %}</div>{% endif %}
+  {% if q.intro %}<p style="white-space:pre-line;margin-top:18px">{{ q.intro }}</p>{% endif %}
+
+  <table>
+    <thead><tr><th>{{ D('description') }}</th><th class="r">{{ D('qty') }}</th><th class="r verberg-mobiel">{{ D('price') }}</th><th class="r">{{ D('amount') }}</th></tr></thead>
+    <tbody>
+    {% for ln in lines %}
+      <tr><td>{{ ln.description }}</td><td class="r">{{ NUM(ln.qty) }} {{ ln.unit }}</td>
+        <td class="r verberg-mobiel">{{ MONEY(ln.price) if ln.price is not none else '—' }}</td>
+        <td class="r">{{ MONEY((ln.qty or 0) * ln.price) if ln.price is not none else '—' }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="tot">
+    <div><span>{{ D('subtotal') }}</span><span>{{ MONEY(tot.subtotal) }}</span></div>
+    {% for rate, amount in tot.vat_lines %}<div><span>{{ D('vat_line', p=NUM(rate)) }}</span><span>{{ MONEY(amount) }}</span></div>{% endfor %}
+    <div class="eind"><span>{{ D('total') }}</span><span>{{ MONEY(tot.total) }}</span></div>
+  </div>
+  {% if q.closing %}<p style="white-space:pre-line;margin-top:22px">{{ q.closing }}</p>{% endif %}
+  {% if co.terms %}<p class="klein" style="white-space:pre-line">{{ co.terms }}</p>{% endif %}
+
+  {% if q.status == 'akkoord' %}
+    <div class="gelukt">✓ {{ D('accepted', d=DATE(q.decided_at), n=q.decided_by) }}{% if done %}<br>{{ T('thanks_accept') }}{% endif %}</div>
+  {% elif q.status == 'afgewezen' %}
+    <div class="gelukt" style="background:#f3f5f7;color:#5b6774">{{ T('thanks_decline') }}</div>
+  {% else %}
+    <form method="post" class="beslis">
+      <label style="color:#5b6774">{{ T('your_name') }}</label>
+      <input name="name" value="{{ q.customer_name }}" style="margin-bottom:14px">
+      <div class="knoppen">
+        <button class="knop groot" name="action" value="akkoord">✓ {{ T('accept') }}</button>
+        <button class="knop lijn" name="action" value="afgewezen">{{ T('decline') }}</button>
+        <a class="knop lijn" href="/q/{{ q.token }}/pdf" style="margin-left:auto">⤓ PDF</a>
+      </div>
+    </form>
+  {% endif %}
+</div>
+<div class="voet">{{ D('made_with') }} · nocturoapps.com</div>
+</body>
+</html>

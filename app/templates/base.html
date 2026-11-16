@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{% block title %}Nocturo {{ T('app_name') }}{% endblock %}</title>
+<link rel="icon" href="/static/favicon.png">
+<link rel="apple-touch-icon" href="/static/uil.png">
+<meta name="theme-color" content="#08111A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css?v=1">
+</head>
+<body>
+{% if c %}
+<header class="kop">
+  <div class="wrap">
+    <a class="merk" href="/offertes"><img src="/static/uil.png" alt=""><b>NOCTURO</b><span>{{ T('app_name')|upper }}</span></a>
+    <nav class="nav" id="nav">
+      {% set p = request.url.path %}
+      <a href="/offertes" class="{{ 'aan' if p.startswith('/offerte') }}">{{ T('nav_quotes') }}</a>
+      <a href="/nieuw" class="{{ 'aan' if p == '/nieuw' }}">{{ T('nav_new') }}</a>
+      <a href="/prijslijst" class="{{ 'aan' if p.startswith('/prijslijst') }}">{{ T('nav_products') }}</a>
+      <a href="/instellingen" class="{{ 'aan' if p.startswith('/instellingen') }}">{{ T('nav_settings') }}</a>
+      {% if is_admin %}<a href="/beheer" class="{{ 'aan' if p.startswith('/beheer') }}">{{ T('admin') }}</a>{% endif %}
+    </nav>
+    <div class="rechts">
+      <div class="klokjes" id="klokjes"></div>
+      <form class="taal"><select onchange="location.href='/taal/'+this.value" aria-label="{{ T('language') }}">
+        {% for l in langs %}<option value="{{ l }}" {{ 'selected' if l == lang }}>{{ l|upper }}</option>{% endfor %}
+      </select></form>
+      <a class="uit verberg-mobiel" href="/uitloggen">{{ T('logout') }}</a>
+      <button class="menuknop" onclick="document.getElementById('nav').classList.toggle('open')" aria-label="menu">☰</button>
+    </div>
+  </div>
+</header>
+{% endif %}
+<main>
+  <div class="wrap">
+    {% if c and c.is_demo %}
+      <div class="melding">{{ T('demo_banner') }} <a href="/aanmelden"><b>{{ T('start_trial') }} →</b></a></div>
+    {% elif c and not c.access_ok() %}
+      <div class="melding fout">{{ T('trial_over') }}</div>
+    {% endif %}
+    {% if flash %}<div class="melding {{ flash.kind }}">{{ flash.msg }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</main>
+<script>
+(function(){
+  var el=document.getElementById('klokjes'); if(!el) return;
+  var z=[['AMS','Europe/Amsterdam'],['LON','Europe/London'],['NYC','America/New_York']];
+  function tik(){el.innerHTML=z.map(function(x){
+    var t=new Date().toLocaleTimeString('nl-NL',{timeZone:x[1],hour:'2-digit',minute:'2-digit'});
+    return '<div>'+x[0]+'<b>'+t+'</b></div>';}).join('');}
+  tik(); setInterval(tik,15000);
+})();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

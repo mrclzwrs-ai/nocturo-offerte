@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ T('nav_products') }}</h1>
+<p class="sub">{{ T('products_intro') }}</p>
+
+<div class="paneel">
+  <h2>{{ T('add') }}</h2>
+  <form method="post" action="/prijslijst/nieuw">
+    <div class="rij2">
+      <div class="veld"><label>{{ T('product') }}</label><input name="name" required></div>
+      <div class="veld"><label>{{ T('description') }}</label><input name="description"></div>
+    </div>
+    <div class="rij3">
+      <div class="veld"><label>{{ T('unit') }}</label><input name="unit" placeholder="stuk / uur / m²"></div>
+      <div class="veld"><label>{{ T('price_excl') }}</label><input name="price" inputmode="decimal" required></div>
+      <div class="veld"><label>{{ T('vat') }} %</label><input name="vat" inputmode="decimal" value="{{ NUM(c.default_vat) }}"></div>
+    </div>
+    <button class="knop">{{ T('add') }}</button>
+  </form>
+</div>
+
+<div class="paneel">
+  {% if products %}
+  <table class="lijst">
+    <thead><tr><th>{{ T('product') }}</th><th class="verberg-mobiel">{{ T('unit') }}</th><th class="r">{{ T('price_excl') }}</th><th class="r verberg-mobiel">{{ T('vat') }}</th><th></th></tr></thead>
+    <tbody>
+    {% for p in products %}
+      <tr>
+        <td><b>{{ p.name }}</b>{% if p.description %}<div class="hint">{{ p.description }}</div>{% endif %}</td>
+        <td class="verberg-mobiel">{{ p.unit }}</td>
+        <td class="r mono">{{ MONEY(p.price) }}</td>
+        <td class="r mono verberg-mobiel">{{ NUM(p.vat) }}%</td>
+        <td class="r"><button type="button" class="knop lijn klein" onclick="document.getElementById('b{{ p.id }}').hidden=!document.getElementById('b{{ p.id }}').hidden">✎</button></td>
+      </tr>
+      <tr id="b{{ p.id }}" hidden><td colspan="5">
+        <form method="post" action="/prijslijst/{{ p.id }}">
+          <div class="rij2">
+            <div class="veld"><label>{{ T('product') }}</label><input name="name" value="{{ p.name }}" required></div>
+            <div class="veld"><label>{{ T('description') }}</label><input name="description" value="{{ p.description }}"></div>
+          </div>
+          <div class="rij3">
+            <div class="veld"><label>{{ T('unit') }}</label><input name="unit" value="{{ p.unit }}"></div>
+            <div class="veld"><label>{{ T('price_excl') }}</label><input name="price" inputmode="decimal" value="{{ NUM(p.price) }}"></div>
+            <div class="veld"><label>{{ T('vat') }} %</label><input name="vat" inputmode="decimal" value="{{ NUM(p.vat) }}"></div>
+          </div>
+          <div class="knoppen">
+            <button class="knop klein">{{ T('save') }}</button>
+            <button class="knop gevaar klein" formaction="/prijslijst/{{ p.id }}/verwijderen" onclick="return confirm('{{ T('confirm_delete') }}')">{{ T('delete') }}</button>
+          </div>
+        </form>
+      </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="sub" style="margin:0">{{ T('no_products') }}</p>{% endif %}
+</div>
+
+<div class="paneel">
+  <h2>{{ T('import_title') }}</h2>
+  <p class="hint" style="margin-top:-6px">{{ T('import_help') }}</p>
+  <form method="post" action="/prijslijst-inlezen" id="imp">
+    <textarea name="text" rows="7" required></textarea>
+    <button class="knop lijn" style="margin-top:12px">{{ T('import_btn') }}</button>
+  </form>
+</div>
+<div class="bezig" id="bezig"><img src="/static/uil.png" alt=""><div class="scan"><i></i></div><p>{{ T('working') }}</p></div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('imp').addEventListener('submit',function(){document.getElementById('bezig').classList.add('aan')});
+window.addEventListener('pageshow',function(){document.getElementById('bezig').classList.remove('aan')});
+</script>
+{% endblock %}

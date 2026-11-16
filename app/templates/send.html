@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hint mono"><a href="/offerte/{{ q.id }}">← {{ q.number }}</a></div>
+<h1>{{ T('send_title') }}</h1>
+<p class="sub">{{ T('attach_note') }}</p>
+{% if c.is_demo %}<div class="melding fout">{{ T('demo_no_send') }}</div>
+{% elif not mail_ok %}<div class="melding fout">{{ T('mail_not_set') }}</div>{% endif %}
+<form method="post" action="/offerte/{{ q.id }}/versturen">
+  <div class="paneel">
+    <div class="veld"><label>{{ T('to') }}</label><input type="email" name="to" value="{{ q.customer_email }}" required></div>
+    <div class="veld"><label>{{ T('subject') }}</label><input name="subject" value="{{ subject }}" required></div>
+    <div class="veld"><label>{{ T('message') }}</label><textarea name="body" rows="12" required>{{ body }}</textarea></div>
+  </div>
+  <div class="knoppen">
+    <button class="knop groot" {{ 'disabled' if c.is_demo or not mail_ok }}>✉ {{ T('send_now') }}</button>
+    <a class="knop lijn" href="/offerte/{{ q.id }}/pdf">⤓ {{ T('download_pdf') }}</a>
+    {% if not mail_ok or c.is_demo %}
+    <a class="knop lijn" href="mailto:{{ q.customer_email }}?subject={{ subject|urlencode }}&body={{ body|urlencode }}">{{ T('send') }} (mail-app)</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ T('admin') }}</h1>
+<p class="sub">{{ companies|length }} accounts</p>
+<div class="paneel">
+<table class="lijst">
+  <thead><tr><th>Bedrijf</th><th class="verberg-mobiel">Aangemeld</th><th class="r">Offertes</th><th>Toegang</th><th></th></tr></thead>
+  <tbody>
+  {% for x in companies %}
+    <tr>
+      <td><b>{{ x.name }}</b><div class="hint">{{ x.email }}</div></td>
+      <td class="mono verberg-mobiel">{{ DATE(x.created_at) }}</td>
+      <td class="r mono">{{ counts[x.id] }}</td>
+      <td class="mono" style="font-size:13px">
+        {% if not x.is_active %}<span class="st afgewezen">uit</span>
+        {% elif x.paid_until and x.paid_until > now %}<span class="st akkoord">betaald t/m {{ DATE(x.paid_until) }}</span>
+        {% elif x.trial_ends and x.trial_ends > now %}<span class="st verstuurd">proef t/m {{ DATE(x.trial_ends) }}</span>
+        {% else %}<span class="st concept">verlopen</span>{% endif %}
+      </td>
+      <td class="r">
+        <form method="post" action="/beheer/{{ x.id }}" class="knoppen" style="justify-content:flex-end">
+          <button class="knop klein" name="action" value="maand">+1 maand betaald</button>
+          <button class="knop lijn klein" name="action" value="proef">+14 dagen proef</button>
+          <button class="knop gevaar klein" name="action" value="aanuit">{{ 'Uitzetten' if x.is_active else 'Aanzetten' }}</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

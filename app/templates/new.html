@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ T('nav_new') }}</h1>
+<p class="sub">{{ T('tagline') }}</p>
+{% if error %}<div class="melding fout">{{ error }}</div>{% endif %}
+{% if n_products == 0 %}<div class="melding fout">{{ T('empty_pricelist_hint') }} <a href="/prijslijst">{{ T('nav_products') }} →</a></div>{% endif %}
+
+<form method="post" action="/nieuw" id="f">
+  <div class="paneel">
+    <h2>{{ T('what_wants') }}</h2>
+    <p class="hint" style="margin-top:-6px">{{ T('what_wants_help') }}</p>
+    <textarea name="wish" id="wish" rows="9" required placeholder="{{ T('placeholder_wish') }}">{{ wish or '' }}</textarea>
+    <div class="knoppen" style="margin-top:14px;justify-content:space-between">
+      <button type="button" class="knop lijn mic" id="mic" hidden>🎙 <span id="micl">{{ T('dictate') }}</span></button>
+      <div style="display:flex;gap:10px;align-items:center;margin-left:auto">
+        <label style="margin:0">{{ T('quote_language') }}</label>
+        <select name="qlang" style="width:auto">{% for l in langs %}<option value="{{ l }}" {{ 'selected' if l == qlang }}>{{ lang_names[l] }}</option>{% endfor %}</select>
+      </div>
+    </div>
+  </div>
+  <button class="knop groot">{{ T('make_quote') }} →</button>
+</form>
+
+<div class="bezig" id="bezig"><img src="/static/uil.png" alt=""><div class="scan"><i></i></div><p>{{ T('working') }}</p></div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('f').addEventListener('submit',function(){document.getElementById('bezig').classList.add('aan')});
+window.addEventListener('pageshow',function(){document.getElementById('bezig').classList.remove('aan')});
+(function(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return;
+  var b=document.getElementById('mic'), l=document.getElementById('micl'), ta=document.getElementById('wish');
+  b.hidden=false; var rec=null, basis='';
+  var codes={nl:'nl-NL',en:'en-GB',de:'de-DE',fr:'fr-FR',es:'es-ES'};
+  b.onclick=function(){
+    if(rec){rec.stop();return;}
+    rec=new SR(); rec.lang=codes['{{ lang }}']||'nl-NL'; rec.continuous=true; rec.interimResults=true;
+    basis=ta.value?ta.value.replace(/\s*$/,' '):'';
+    rec.onresult=function(e){var s='';for(var i=0;i<e.results.length;i++){s+=e.results[i][0].transcript;}ta.value=basis+s;};
+    rec.onend=function(){rec=null;b.classList.remove('aan');l.textContent='{{ T("dictate") }}';};
+    rec.start(); b.classList.add('aan'); l.textContent='{{ T("listening") }}';
+  };
+})();
+</script>
+{% endblock %}

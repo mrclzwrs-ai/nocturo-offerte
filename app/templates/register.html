@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="inlog">
+  <div class="logo"><img src="/static/uil.png" alt=""><b>NOCTURO</b><span>{{ T('app_name')|upper }}</span></div>
+  <p class="tag">{{ T('tagline') }}</p>
+  <div class="paneel">
+    <h2>{{ T('start_trial') }}</h2>
+    {% if error %}<div class="melding fout">{{ error }}</div>{% endif %}
+    <form method="post" action="/aanmelden">
+      <div class="veld"><label>{{ T('company_name') }}</label><input name="name" value="{{ name or '' }}" required></div>
+      <div class="veld"><label>{{ T('email') }}</label><input type="email" name="email" value="{{ email or '' }}" autocomplete="email" required></div>
+      <div class="veld"><label>{{ T('password') }}</label><input type="password" name="password" minlength="8" autocomplete="new-password" required></div>
+      <div class="rij2">
+        <div class="veld"><label>{{ T('country') }}</label>
+          <select name="country">
+            {% for x in ['Nederland','België','Deutschland','France','España','United Kingdom','Other'] %}<option>{{ x }}</option>{% endfor %}
+          </select></div>
+        <div class="veld"><label>{{ T('language') }}</label>
+          <select name="lang">{% for l in langs %}<option value="{{ l }}" {{ 'selected' if l == lang }}>{{ lang_names[l] }}</option>{% endfor %}</select></div>
+      </div>
+      <button class="knop groot" style="width:100%">{{ T('start_trial') }}</button>
+    </form>
+  </div>
+  <p class="of">{{ T('have_account') }} <a href="/login">{{ T('login') }}</a> · <a href="/demo">{{ T('try_demo') }}</a></p>
+</div>
+{% endblock %}

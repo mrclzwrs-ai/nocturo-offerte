@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="knoppen" style="justify-content:space-between;margin-bottom:18px">
+  <div>
+    <div class="hint mono"><a href="/offertes">← {{ T('nav_quotes') }}</a></div>
+    <h1><span class="mono">{{ q.number }}</span> <span class="st {{ q.status }}" style="vertical-align:middle">{{ T('st_' ~ q.status) }}</span></h1>
+    {% if q.status == 'akkoord' and q.decided_by %}<div class="hint">✓ {{ T('accepted_by') }} {{ q.decided_by }} · {{ DATE(q.decided_at) }}</div>{% endif %}
+  </div>
+</div>
+
+{% if notes %}
+<div class="nakijken"><b>{{ T('check_points') }}</b><ul>{% for n in notes %}<li>{{ n }}</li>{% endfor %}</ul></div>
+{% endif %}
+
+<div class="kolommen">
+  <form method="post" action="/offerte/{{ q.id }}" id="f">
+  <input type="hidden" name="lines_json" id="lines_json">
+  <input type="hidden" name="next" id="next" value="">
+    <div class="paneel">
+      <h2>{{ T('customer') }}</h2>
+      <div class="rij2">
+        <div class="veld"><label>{{ T('customer_name') }}</label><input name="customer_name" value="{{ q.customer_name }}"></div>
+        <div class="veld"><label>{{ T('customer_company') }}</label><input name="customer_company" value="{{ q.customer_company }}"></div>
+      </div>
+      <div class="rij2">
+        <div class="veld"><label>{{ T('customer_email') }}</label><input type="email" name="customer_email" value="{{ q.customer_email }}"></div>
+        <div class="veld"><label>{{ T('customer_address') }}</label><input name="customer_address" value="{{ q.customer_address }}"></div>
+      </div>
+    </div>
+
+    <div class="paneel">
+      <h2>{{ T('app_name') }}</h2>
+      <div class="veld"><label>{{ T('subject') }}</label><input name="title" value="{{ q.title }}"></div>
+      <div class="veld"><label>{{ T('intro') }}</label><textarea name="intro" rows="3">{{ q.intro }}</textarea></div>
+
+      <h2 style="margin-top:22px">{{ T('lines') }}</h2>
+      <table class="regels">
+        <thead><tr><th style="width:44%">{{ T('description') }}</th><th>{{ T('qty') }}</th><th>{{ T('unit') }}</th><th>{{ T('price_excl') }}</th><th>{{ T('vat') }} %</th><th class="r">{{ T('amount') }}</th><th></th></tr></thead>
+        <tbody id="regels"></tbody>
+      </table>
+      <datalist id="producten"></datalist>
+      <button type="button" class="knop lijn klein" id="plus" style="margin-top:10px">{{ T('add_line') }}</button>
+      <div class="totaal" id="totaal"></div>
+
+      <div class="veld" style="margin-top:22px"><label>{{ T('closing') }}</label><textarea name="closing" rows="2">{{ q.closing }}</textarea></div>
+      <div class="rij2">
+        <div class="veld"><label>{{ T('valid_until') }}</label><input type="date" name="valid_until" value="{{ q.valid_until.strftime('%Y-%m-%d') if q.valid_until else '' }}"></div>
+        <div class="veld"><label>{{ T('quote_language') }}</label>
+          <select name="qlang">{% for l in langs %}<option value="{{ l }}" {{ 'selected' if l == q.lang }}>{{ lang_names[l] }}</option>{% endfor %}</select></div>
+      </div>
+    </div>
+  </form>
+
+  <div class="zij">
+    <div class="paneel">
+      <button class="knop" form="f" onclick="document.getElementById('next').value=''">{{ T('save') }}</button>
+      <button class="knop lijn" form="f" onclick="document.getElementById('next').value='pdf'">⤓ {{ T('download_pdf') }}</button>
+      <button class="knop lijn" form="f" onclick="document.getElementById('next').value='send'">✉ {{ T('send') }}</button>
+    </div>
+    <div class="paneel">
+      <h2>{{ T('customer_link') }}</h2>
+      <p class="hint" style="margin-top:-6px">{{ T('customer_link_help') }}</p>
+      <div class="plak"><input id="link" value="{{ public_url }}" readonly><button type="button" class="knop lijn klein" id="kopieer">{{ T('copy') }}</button></div>
+    </div>
+    <div class="paneel">
+      <h2>{{ T('set_status') }}</h2>
+      <form method="post" action="/offerte/{{ q.id }}/status" class="plak">
+        <select name="status">{% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == q.status }}>{{ T('st_' ~ s) }}</option>{% endfor %}</select>
+        <button class="knop lijn klein">OK</button>
+      </form>
+    </div>
+    <div class="paneel knoppen">
+      <form method="post" action="/offerte/{{ q.id }}/kopie"><button class="knop lijn klein">⧉ {{ T('duplicate') }}</button></form>
+      <form method="post" action="/offerte/{{ q.id }}/verwijderen" onsubmit="return confirm('{{ T('confirm_delete') }}')"><button class="knop gevaar klein">{{ T('delete') }}</button></form>
+    </div>
+    {% if q.request_text %}
+    <div class="paneel">
+      <h2>{{ T('what_wants') }}</h2>
+      <p class="hint" style="white-space:pre-line;margin:0">{{ q.request_text }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+var regels = {{ lines|tojson }};
+var producten = {{ products_json|safe }};
+var LANG = '{{ lang }}';
+var TXT = {missing: {{ T('missing_price')|tojson }}, sub: {{ T('subtotal')|tojson }}, vat: {{ T('vat')|tojson }}, tot: {{ T('total')|tojson }},
+           desc: {{ T('description')|tojson }}, qty: {{ T('qty')|tojson }}, unit: {{ T('unit')|tojson }}, price: {{ T('price_excl')|tojson }}};
+function geld(v){
+  var s=(Math.round(v*100)/100).toLocaleString(LANG==='en'?'en-GB':LANG,{minimumFractionDigits:2,maximumFractionDigits:2});
+  return LANG==='en'?'€'+s:(LANG==='fr'?s+' €':'€ '+s);
+}
+function getal(v){ if(v===null||v===undefined||v==='') return null; var n=parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n; }
+var dl=document.getElementById('producten');
+producten.forEach(function(p){var o=document.createElement('option');o.value=p.name;dl.appendChild(o);});
+var tb=document.getElementById('regels');
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function rij(ln){
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td class="oms"><input data-k="description" list="producten" placeholder="'+esc(TXT.desc)+'" value="'+esc(ln.description)+'"></td>'+
+    '<td><input data-k="qty" inputmode="decimal" placeholder="'+esc(TXT.qty)+'" value="'+esc(ln.qty)+'"></td>'+
+    '<td><input data-k="unit" placeholder="'+esc(TXT.unit)+'" value="'+esc(ln.unit)+'"></td>'+
+    '<td><input data-k="price" inputmode="decimal" placeholder="'+esc(TXT.price)+'" value="'+esc(ln.price==null?'':ln.price)+'"></td>'+
+    '<td><input data-k="vat" inputmode="decimal" value="'+esc(ln.vat==null?{{ c.default_vat }}:ln.vat)+'"></td>'+
+    '<td class="bedrag"></td><td><button type="button" class="weg" title="×">×</button></td>';
+  tr.querySelector('.weg').onclick=function(){tr.remove();reken();};
+  tr.querySelectorAll('input').forEach(function(i){i.addEventListener('input',reken);});
+  tr.querySelector('[data-k=description]').addEventListener('change',function(){
+    var p=producten.find(function(x){return x.name===this.value;},this); if(!p) return;
+    tr.querySelector('[data-k=unit]').value=p.unit; tr.querySelector('[data-k=price]').value=p.price; tr.querySelector('[data-k=vat]').value=p.vat;
+    if(!tr.querySelector('[data-k=qty]').value) tr.querySelector('[data-k=qty]').value=1; reken();
+  });
+  tb.appendChild(tr);
+}
+function lees(){
+  return Array.from(tb.querySelectorAll('tr')).map(function(tr){
+    var o={}; tr.querySelectorAll('input').forEach(function(i){o[i.dataset.k]=i.value;});
+    return {description:o.description, qty:getal(o.qty)||0, unit:o.unit, price:getal(o.price), vat:getal(o.vat)||0};
+  });
+}
+function reken(){
+  var sub=0, btw={};
+  Array.from(tb.querySelectorAll('tr')).forEach(function(tr){
+    var q=getal(tr.querySelector('[data-k=qty]').value)||0, pi=tr.querySelector('[data-k=price]'), p=getal(pi.value), v=getal(tr.querySelector('[data-k=vat]').value)||0;
+    var cel=tr.querySelector('.bedrag');
+    if(p===null){pi.classList.add('mist');cel.innerHTML='<span style="color:var(--oranje)">'+esc(TXT.missing)+'</span>';return;}
+    pi.classList.remove('mist'); var a=Math.round(q*p*100)/100; sub+=a; btw[v]=(btw[v]||0)+a; cel.textContent=geld(a);
+  });
+  var h='<div><span>'+TXT.sub+'</span><span>'+geld(sub)+'</span></div>', tv=0;
+  Object.keys(btw).sort(function(a,b){return a-b;}).forEach(function(r){ if(+r===0) return; var b=Math.round(btw[r]*r)/100; tv+=b;
+    h+='<div><span>'+TXT.vat+' '+r+'%</span><span>'+geld(b)+'</span></div>';});
+  h+='<div class="eind"><span>'+TXT.tot+'</span><span>'+geld(sub+tv)+'</span></div>';
+  document.getElementById('totaal').innerHTML=h;
+}
+regels.forEach(rij); if(!regels.length) rij({qty:1}); reken();
+document.getElementById('plus').onclick=function(){rij({qty:1});reken();tb.lastChild.querySelector('input').focus();};
+document.getElementById('f').addEventListener('submit',function(){document.getElementById('lines_json').value=JSON.stringify(lees());});
+document.getElementById('kopieer').onclick=function(){
+  var i=document.getElementById('link'); i.select();
+  (navigator.clipboard?navigator.clipboard.writeText(i.value):Promise.reject()).catch(function(){document.execCommand('copy');});
+  this.textContent={{ T('copied')|tojson }};
+};
+</script>
+{% endblock %}

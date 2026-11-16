@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ T('nav_settings') }}</h1>
+<p class="sub">{{ c.email }}</p>
+<form method="post" action="/instellingen" enctype="multipart/form-data">
+<div class="kolommen">
+  <div>
+    <div class="paneel">
+      <h2>{{ T('company_details') }}</h2>
+      <div class="veld"><label>{{ T('company_name') }}</label><input name="name" value="{{ c.name }}" required></div>
+      <div class="rij2">
+        <div class="veld"><label>{{ T('address') }}</label><input name="address" value="{{ c.address }}"></div>
+        <div class="veld"><label>{{ T('postcode_city') }}</label><input name="postcode_city" value="{{ c.postcode_city }}"></div>
+      </div>
+      <div class="rij2">
+        <div class="veld"><label>{{ T('country') }}</label><input name="country" value="{{ c.country }}"></div>
+        <div class="veld"><label>{{ T('phone') }}</label><input name="phone" value="{{ c.phone }}"></div>
+      </div>
+      <div class="rij2">
+        <div class="veld"><label>{{ T('website') }}</label><input name="website" value="{{ c.website }}"></div>
+        <div class="veld"><label>{{ T('coc') }}</label><input name="coc" value="{{ c.coc }}"></div>
+      </div>
+      <div class="rij2">
+        <div class="veld"><label>{{ T('vat_no') }}</label><input name="vat_no" value="{{ c.vat_no }}"></div>
+        <div class="veld"><label>{{ T('iban') }}</label><input name="iban" value="{{ c.iban }}"></div>
+      </div>
+    </div>
+    <div class="paneel">
+      <h2>{{ T('quote_settings') }}</h2>
+      <div class="rij3">
+        <div class="veld"><label>{{ T('default_vat') }}</label><input name="default_vat" inputmode="decimal" value="{{ NUM(c.default_vat) }}"></div>
+        <div class="veld"><label>{{ T('validity_days') }}</label><input name="validity_days" inputmode="numeric" value="{{ c.validity_days }}"></div>
+        <div class="veld"><label>{{ T('prefix') }}</label><input name="prefix" value="{{ c.prefix }}"></div>
+      </div>
+      <div class="veld"><label>{{ T('terms') }}</label><textarea name="terms" rows="3" placeholder="{{ T('terms_ph') }}">{{ c.terms }}</textarea></div>
+    </div>
+  </div>
+  <div>
+    <div class="paneel">
+      <h2>{{ T('logo') }}</h2>
+      {% if c.logo_data %}
+        <div style="background:#fff;border-radius:8px;padding:14px;text-align:center;margin-bottom:12px"><img src="{{ c.logo_data }}" style="max-height:80px;max-width:100%"></div>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="remove_logo" value="1" style="width:auto"> {{ T('delete') }}</label>
+      {% endif %}
+      <input type="file" name="logo" accept="image/png,image/jpeg">
+      <p class="hint">{{ T('logo_help') }}</p>
+      <div class="veld"><label>{{ T('accent') }}</label><input type="color" name="accent" value="{{ c.accent }}" style="height:46px;padding:4px"></div>
+      <div class="veld"><label>{{ T('language') }}</label>
+        <select name="lang">{% for l in langs %}<option value="{{ l }}" {{ 'selected' if l == c.lang }}>{{ lang_names[l] }}</option>{% endfor %}</select></div>
+    </div>
+    <button class="knop groot" style="width:100%">{{ T('save') }}</button>
+    {% if welcome %}<p class="hint" style="margin-top:14px">→ <a href="/prijslijst">{{ T('nav_products') }}</a></p>{% endif %}
+  </div>
+</div>
+</form>
+{% endblock %}
