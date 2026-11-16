@@ -21,6 +21,7 @@ Omgevingsvariabelen:
 | `ANTHROPIC_API_KEY` | Claude-sleutel |
 | `ADMIN_EMAIL` | e-mailadres van het beheerdersaccount |
 | `BASE_URL` | bijv. `https://offerte.nocturoapps.com` |
+| `DB_SCHEMA` | `offerte` (eigen vakje in een gedeelde database) |
 | `HTTPS_ONLY` | `1` |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | voor het mailen (optioneel) |
 

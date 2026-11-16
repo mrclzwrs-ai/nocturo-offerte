@@ -10,12 +10,29 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./nocturo_offerte.db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+if DATABASE_URL.startswith("postgresql://"):
+    # SQLAlchemy 2.1 kiest anders psycopg 3; wij gebruiken psycopg2
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
     pool_pre_ping=True,
 )
+# Eigen vakje (schema) binnen een gedeelde Postgres-database, zodat Offerte
+# niet in de weg zit van andere apps die dezelfde database gebruiken.
+DB_SCHEMA = os.environ.get("DB_SCHEMA", "").strip()
+if DB_SCHEMA and not DATABASE_URL.startswith("sqlite"):
+    from sqlalchemy import event, text
+
+    @event.listens_for(engine, "connect")
+    def _set_search_path(dbapi_conn, _record):
+        cur = dbapi_conn.cursor()
+        cur.execute(f'CREATE SCHEMA IF NOT EXISTS "{DB_SCHEMA}"')
+        cur.execute(f'SET search_path TO "{DB_SCHEMA}"')
+        cur.close()
+        dbapi_conn.commit()
+
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 Base = declarative_base()
 
