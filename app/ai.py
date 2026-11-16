@@ -86,21 +86,25 @@ def _client():
 
 
 def _call_tool(system: str, user: str, tool: dict, max_tokens: int = 4000) -> dict:
+    # Dit model ondersteunt geen geforceerde tool-keuze; daarom vragen we het
+    # dringend in de instructie en proberen we het zo nodig één keer opnieuw.
     client = _client()
-    try:
-        msg = client.messages.create(
-            model=MODEL,
-            max_tokens=max_tokens,
-            system=system,
-            tools=[tool],
-            tool_choice={"type": "tool", "name": tool["name"]},
-            messages=[{"role": "user", "content": user}],
-        )
-    except Exception as e:  # netwerk, sleutel, tegoed
-        raise AIError(str(e)) from e
-    for block in msg.content:
-        if getattr(block, "type", "") == "tool_use":
-            return block.input
+    system = system + f"\n\nGeef je antwoord ALTIJD via de tool '{tool['name']}', zonder losse tekst."
+    for _ in range(2):
+        try:
+            msg = client.messages.create(
+                model=MODEL,
+                max_tokens=max_tokens,
+                system=system,
+                tools=[tool],
+                tool_choice={"type": "auto"},
+                messages=[{"role": "user", "content": user}],
+            )
+        except Exception as e:  # netwerk, sleutel, tegoed
+            raise AIError(str(e)) from e
+        for block in msg.content:
+            if getattr(block, "type", "") == "tool_use" and block.name == tool["name"]:
+                return block.input
     raise AIError("Geen antwoord van het model")
 
 
