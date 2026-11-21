@@ -94,6 +94,7 @@ def current_company(request: Request, db) -> Company | None:
     # Offerte staat ook aan via de hele control room, een los Offerte-abonnement of als beheerder
     subs = {x.app: x.status for x in db.query(AppSub).filter(AppSub.company_id == c.id).all()}
     c._extra_toegang = (subs.get("controlroom") == "actief" or subs.get("offerte") == "actief"
+                        or K.is_vriend(subs)
                         or bool(ADMIN_EMAIL and c.email == ADMIN_EMAIL))
     return c
 
@@ -271,7 +272,8 @@ def kantoor(request: Request, db=Depends(get_db)):
     c, lang = company_ctx(request, db)
     subs = subs_van(db, c)
     kaarten = K.kaarten(c, subs)
-    cr_actief = subs.get("controlroom") and subs["controlroom"].status == "actief"
+    vriend = K.is_vriend(subs)
+    cr_actief = (subs.get("controlroom") and subs["controlroom"].status == "actief") or vriend
     for x in kaarten:  # de hele control room of de beheerder: alles staat aan
         if (cr_actief or is_admin_of(c)) and x["key"] != "pling" and x["status"] not in ("actief", "proef"):
             x["status"] = "actief"
@@ -280,7 +282,7 @@ def kantoor(request: Request, db=Depends(get_db)):
     cr = subs.get("controlroom")
     return render(request, "kantoor.html", c, lang, kaarten=kaarten, actief=actief, gehuurd=gehuurd,
                   totaal=K.maandbedrag(c, subs), cr=cr, prijs_cr=K.PRIJS_CONTROLROOM, prijs_los=K.PRIJS_LOS,
-                  dagen=c.trial_days_left())
+                  dagen=c.trial_days_left(), vriend=vriend)
 
 
 def _meld_aan_marcel(company, app_key: str):
@@ -337,6 +339,8 @@ def heeft_app(db, c, key: str) -> bool:
     if is_admin_of(c):
         return True
     subs = subs_van(db, c)
+    if K.is_vriend(subs):
+        return True
     if subs.get("controlroom") and subs["controlroom"].status == "actief":
         return True
     return bool(subs.get(key) and subs[key].status == "actief")
@@ -893,7 +897,8 @@ def admin_page(request: Request, db=Depends(get_db)):
     subs = {}
     for s_ in db.query(AppSub).all():
         subs.setdefault(s_.company_id, {})[s_.app] = s_.status
-    apps = [(a["key"], a["name"]) for a in K.APPS] + [("controlroom", "Control room")]
+    apps = [(a["key"], a["name"]) for a in K.APPS] + [("controlroom", "Control room"),
+                                                       (K.VRIEND, "Vriendenaccount (alles gratis)")]
     return render(request, "admin.html", c, c.lang, companies=companies, counts=counts, now=datetime.utcnow(),
                   subs=subs, apps=apps)
 
@@ -914,7 +919,7 @@ def admin_action(cid: int, request: Request, action: str = Form(...), db=Depends
         x.is_active = not x.is_active
     elif action.startswith("app:"):
         _, key, nieuw = (action.split(":") + ["", ""])[:3]
-        if key in K.APP_KEYS and nieuw in ("actief", "uit"):
+        if (key in K.APP_KEYS or key == K.VRIEND) and nieuw in ("actief", "uit"):
             sub = db.query(AppSub).filter(AppSub.company_id == x.id, AppSub.app == key).first()
             if not sub:
                 sub = AppSub(company_id=x.id, app=key)

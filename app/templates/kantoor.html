@@ -45,6 +45,7 @@
 {% endfor %}
 </div>
 
+{% if not vriend %}
 <section class="paneel kt-cr">
   <div>
     <h2>{{ K('control_title') }}</h2>
@@ -59,6 +60,7 @@
     <form method="post" action="/kantoor/huur/controlroom"><button class="knop">{{ K('rent_all') }}</button></form>
   {% endif %}
 </section>
+{% endif %}
 
 <div class="kt-onder">
   <section class="paneel">
@@ -72,7 +74,9 @@
   </section>
   <section class="paneel">
     <h2>{{ K('my_sub') }}</h2>
-    {% if cr and cr.status == 'actief' %}
+    {% if vriend %}
+      <div class="kt-gegevens"><span>{{ K('friend') }}</span><b class="mono">{{ K('free') }}</b></div>
+    {% elif cr and cr.status == 'actief' %}
       <div class="kt-gegevens"><span>{{ K('control_title') }}</span><b class="mono">{{ MONEY(prijs_cr) }}</b></div>
     {% elif gehuurd %}
       <div class="kt-gegevens">
@@ -82,7 +86,7 @@
       <p class="hint">{{ K('nothing_yet') }}</p>
     {% endif %}
     <div class="kt-gegevens kt-totaal"><span>{{ K('total') }}</span><b class="mono oranjetekst">{{ MONEY(totaal) }}</b></div>
-    <p class="hint">{{ K('pay_note') }}</p>
+    <p class="hint">{{ K('friend_note') if vriend else K('pay_note') }}</p>
   </section>
 </div>
 {% endblock %}

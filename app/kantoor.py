@@ -20,6 +20,14 @@ APPS = [
     {"key": "pling", "name": "Pling", "price": 12.5, "url": "https://nocturoapps.com/pling/"},
 ]
 APP_KEYS = [a["key"] for a in APPS] + ["controlroom"]
+# Vriendenaccount: alles staat aan en het kost niets (alleen Marcel zet dit aan via /beheer)
+VRIEND = "vriend"
+
+
+def is_vriend(subs: dict) -> bool:
+    v = subs.get(VRIEND)
+    st = v.status if hasattr(v, "status") else v
+    return st == "actief"
 PRIJS_LOS = sum(a["price"] for a in APPS)
 
 
@@ -52,6 +60,8 @@ def kaarten(company, subs: dict):
 
 
 def maandbedrag(company, subs: dict) -> float:
+    if is_vriend(subs):
+        return 0.0
     if subs.get("controlroom") and subs["controlroom"].status == "actief":
         return PRIJS_CONTROLROOM
     tot = 0.0
@@ -110,6 +120,13 @@ TEKSTEN = {
                  "Die Zahlung regeln wir vorerst persönlich mit Ihnen. Online-Zahlung folgt bald.",
                  "Pour l'instant, nous réglons le paiement avec vous personnellement. Le paiement en ligne arrive bientôt.",
                  "Por ahora acordamos el pago contigo personalmente. El pago en línea llegará pronto."],
+    "friend": ["Vriendenaccount", "Friends account", "Freundeskonto", "Compte ami", "Cuenta de amigo"],
+    "friend_note": ["Alle apps staan gratis voor je aan. Veel plezier ermee!",
+                    "All apps are switched on for you, free of charge. Enjoy!",
+                    "Alle Apps sind kostenlos für Sie aktiviert. Viel Spaß damit!",
+                    "Toutes les applis sont activées gratuitement pour vous. Profitez-en !",
+                    "Todas las apps están activadas gratis para ti. ¡Disfrútalas!"],
+    "free": ["Gratis", "Free", "Kostenlos", "Gratuit", "Gratis"],
     "edit_details": ["Gegevens wijzigen", "Edit details", "Daten ändern", "Modifier les données", "Editar datos"],
     "request_ok": ["Je aanvraag is binnen. We nemen snel contact met je op.",
                    "Your request has been received. We will contact you soon.",
