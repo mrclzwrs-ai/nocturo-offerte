@@ -1,0 +1,23 @@
+name: Search & Analyze – dagelijkse ronde voor klanten
+on:
+  schedule:
+    - cron: "17 7 * * 1-5"   # werkdagen ±08:17 Nederlandse tijd (winter)
+  workflow_dispatch:
+jobs:
+  ronde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Server wakker maken en ronde starten
+        run: |
+          for i in 1 2 3 4 5 6; do
+            curl -fsS -m 90 https://nocturo-offerte.onrender.com/cron/dagelijks && break || sleep 30
+          done
+      - name: Wakker houden tot alle rondes klaar zijn
+        run: |
+          for i in $(seq 1 80); do
+            sleep 60
+            uit=$(curl -fsS -m 60 https://nocturo-offerte.onrender.com/cron/status || echo '{"bezig":1}')
+            echo "$uit"
+            echo "$uit" | grep -q '"bezig":0' && break
+          done

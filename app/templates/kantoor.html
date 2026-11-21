@@ -32,6 +32,11 @@
         <span class="kt-noot">{{ K('requested_note') }}</span>
       {% elif a.status == 'pilot' %}
         <a class="knop lijn oranje" href="{{ a.url }}" target="_blank" rel="noopener">{{ K('join_pilot') }}</a>
+      {% elif a.key == 'video' %}
+        <div style="display:flex;gap:10px">
+          <a class="knop lijn" style="flex:1" href="/video">{{ K('try') }}</a>
+          <form method="post" action="/kantoor/huur/video" style="flex:1"><button class="knop oranjevol" style="width:100%">{{ K('rent') }}</button></form>
+        </div>
       {% else %}
         <form method="post" action="/kantoor/huur/{{ a.key }}"><button class="knop oranjevol">{{ K('rent') }}</button></form>
       {% endif %}

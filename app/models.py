@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timedelta
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, create_engine,
+    Boolean, Column, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Text, UniqueConstraint, create_engine,
 )
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
@@ -73,7 +73,7 @@ class Company(Base):
     def access_ok(self) -> bool:
         if not self.is_active:
             return False
-        if self.is_demo:
+        if self.is_demo or getattr(self, "_extra_toegang", False):
             return True
         now = datetime.utcnow()
         if self.paid_until and self.paid_until > now:
@@ -81,6 +81,8 @@ class Company(Base):
         return bool(self.trial_ends and self.trial_ends > now)
 
     def trial_days_left(self):
+        if getattr(self, "_extra_toegang", False):
+            return None
         if self.is_demo or (self.paid_until and self.paid_until > datetime.utcnow()):
             return None
         if not self.trial_ends:
@@ -137,6 +139,74 @@ class AppSub(Base):
     status = Column(String(20), default="aangevraagd")  # aangevraagd / actief / uit
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class SAProfiel(Base):
+    """Search & Analyze-instellingen van één klant."""
+    __tablename__ = "nocturo_sa_profiel"
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, unique=True, index=True)
+    aanbod = Column(Text, default="")          # wat je verkoopt en waarom het past bij webwinkels
+    link = Column(String(255), default="")      # jouw website
+    afzender = Column(String(255), default="")  # naam onder de mail
+    smtp_user = Column(String(255), default="")
+    smtp_pass = Column(Text, default="")        # versleuteld
+    smtp_server = Column(String(255), default="smtp.gmail.com")
+    smtp_port = Column(Integer, default=465)
+    landen = Column(String(100), default="NL,BE")
+    niche = Column(String(255), default="")
+    per_dag = Column(Integer, default=10)
+    aan = Column(Boolean, default=False)        # dagelijkse ronde aan/uit
+    laatste_ronde = Column(DateTime, nullable=True)
+    melding = Column(Text, default="")          # laatste fout of opmerking
+
+
+class SALead(Base):
+    """Eén winkel die Search & Analyze voor een klant heeft gevonden en gemaild."""
+    __tablename__ = "nocturo_sa_lead"
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    domein = Column(String(255), default="", index=True)
+    email = Column(String(255), default="")
+    winkelnaam = Column(String(255), default="")
+    website = Column(String(255), default="")
+    land = Column(String(10), default="")
+    onderwerp = Column(String(255), default="")
+    tekst = Column(Text, default="")
+    rapport = Column(Text, default="")
+    status = Column(String(30), default="verstuurd")  # verstuurd / mislukt
+    fout = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Media(Base):
+    """Foto's die klanten uploaden (voor Video Ads); openbaar op /media/<token>."""
+    __tablename__ = "nocturo_media"
+    id = Column(Integer, primary_key=True)
+    token = Column(String(64), unique=True, index=True, default=lambda: secrets.token_urlsafe(24))
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    mime = Column(String(50), default="image/jpeg")
+    data = Column(LargeBinary, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Video(Base):
+    """Eén Video Ads-filmpje."""
+    __tablename__ = "nocturo_video"
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    title = Column(String(255), default="")
+    price = Column(Float, default=0.0)
+    description = Column(Text, default="")
+    lang = Column(String(5), default="nl")
+    media_tokens = Column(Text, default="")      # komma-gescheiden
+    voiceover = Column(Text, default="")
+    status = Column(String(20), default="pending")  # pending / processing / completed / failed
+    render_id = Column(String(100), default="")
+    url = Column(String(500), default="")
+    thumb = Column(String(500), default="")
+    error = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 def init_db():

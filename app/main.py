@@ -18,7 +18,9 @@ from . import ai
 from .calc import lines_of, notes_of, totals
 from .i18n import LANGS, LANG_NAMES, STEPS, d, date_str, money, number, t
 from .mailer import mail_ready, send_quote_mail
-from .models import AppSub, Company, Product, Quote, SessionLocal, init_db
+from .models import AppSub, Company, Media, Product, Quote, SAProfiel, SALead, SessionLocal, Video, init_db
+from . import video as VA
+from .sa import klant as SA
 from . import kantoor as K
 from .seed import DEMO_EMAIL, ensure_demo
 
@@ -89,6 +91,10 @@ def current_company(request: Request, db) -> Company | None:
     if not c or not c.is_active:
         request.session.clear()
         return None
+    # Offerte staat ook aan via de hele control room, een los Offerte-abonnement of als beheerder
+    subs = {x.app: x.status for x in db.query(AppSub).filter(AppSub.company_id == c.id).all()}
+    c._extra_toegang = (subs.get("controlroom") == "actief" or subs.get("offerte") == "actief"
+                        or bool(ADMIN_EMAIL and c.email == ADMIN_EMAIL))
     return c
 
 
@@ -265,6 +271,10 @@ def kantoor(request: Request, db=Depends(get_db)):
     c, lang = company_ctx(request, db)
     subs = subs_van(db, c)
     kaarten = K.kaarten(c, subs)
+    cr_actief = subs.get("controlroom") and subs["controlroom"].status == "actief"
+    for x in kaarten:  # de hele control room of de beheerder: alles staat aan
+        if (cr_actief or is_admin_of(c)) and x["key"] != "pling" and x["status"] not in ("actief", "proef"):
+            x["status"] = "actief"
     actief = sum(1 for x in kaarten if x["status"] in ("actief", "proef"))
     gehuurd = [x for x in kaarten if x["status"] == "actief"]
     cr = subs.get("controlroom")
@@ -316,6 +326,181 @@ def kantoor_huur(app_key: str, request: Request, db=Depends(get_db)):
         _meld_aan_marcel(c, app_key)
     flash(request, K.k("request_ok", lang))
     return go("/kantoor")
+
+
+# ---------- toegang tot de apps ----------
+def is_admin_of(c) -> bool:
+    return bool(c and ADMIN_EMAIL and c.email == ADMIN_EMAIL)
+
+
+def heeft_app(db, c, key: str) -> bool:
+    if is_admin_of(c):
+        return True
+    subs = subs_van(db, c)
+    if subs.get("controlroom") and subs["controlroom"].status == "actief":
+        return True
+    return bool(subs.get(key) and subs[key].status == "actief")
+
+
+@app.get("/media/{token}")
+def media(token: str, db=Depends(get_db)):
+    m = db.query(Media).filter(Media.token == token).first()
+    if not m:
+        raise HTTPException(404)
+    return Response(m.data, media_type=m.mime, headers={"Cache-Control": "public, max-age=31536000"})
+
+
+# ---------- Video Ads ----------
+@app.get("/video", response_class=HTMLResponse)
+def video_page(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    actief = heeft_app(db, c, "video")
+    videos = db.query(Video).filter(Video.company_id == c.id).order_by(Video.created_at.desc()).limit(60).all()
+    VA.ververs(db, videos)
+    over, limiet = VA.tegoed(db, c.id, actief)
+    bezig = any(v.status in ("pending", "processing") for v in videos)
+    return render(request, "video.html", c, lang, videos=videos, actief=actief, over=over, limiet=limiet,
+                  bezig=bezig, va_klaar=VA.klaar())
+
+
+@app.post("/video/nieuw")
+async def video_nieuw(request: Request, title: str = Form(...), price: str = Form("0"), description: str = Form(""),
+                      vlang: str = Form("nl"), fotos: list[UploadFile] = File(default=[]), db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if c.is_demo:
+        return go("/aanmelden")
+    actief = heeft_app(db, c, "video")
+    over, _ = VA.tegoed(db, c.id, actief)
+    if over <= 0:
+        flash(request, K.k("v_limit" if actief else "v_trial_over", lang), "fout")
+        return go("/video")
+    if not VA.klaar():
+        flash(request, K.k("v_not_ready", lang), "fout")
+        return go("/video")
+    tokens = []
+    for f in (fotos or [])[:4]:
+        if not f or not f.filename:
+            continue
+        data = await f.read()
+        mime = (f.content_type or "").lower()
+        if not mime.startswith("image/") or not data or len(data) > 8 * 1024 * 1024:
+            continue
+        m = Media(company_id=c.id, mime=mime, data=data)
+        db.add(m)
+        db.flush()
+        tokens.append(m.token)
+    if not tokens:
+        db.rollback()
+        flash(request, K.k("v_need_photo", lang), "fout")
+        return go("/video")
+    try:
+        prijs = float(price.replace(",", ".") or 0)
+    except ValueError:
+        prijs = 0.0
+    v = Video(company_id=c.id, title=title.strip()[:255], price=prijs, description=description.strip()[:2000],
+              lang=vlang if vlang in LANGS else lang, media_tokens=",".join(tokens))
+    db.add(v)
+    db.commit()
+    VA.start_op_achtergrond(v.id, base_url(request), c.name, c.website or "")
+    flash(request, K.k("v_started", lang))
+    return go("/video")
+
+
+# ---------- Search & Analyze ----------
+def sa_profiel(db, c) -> SAProfiel:
+    p = db.query(SAProfiel).filter(SAProfiel.company_id == c.id).first()
+    if not p:
+        p = SAProfiel(company_id=c.id, afzender=c.name, link=c.website or "", smtp_user=c.email,
+                      landen="NL,BE" if (c.lang or "nl") == "nl" else "UK,US")
+        db.add(p)
+        db.commit()
+    return p
+
+
+@app.get("/search", response_class=HTMLResponse)
+def search_page(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if not heeft_app(db, c, "search"):
+        flash(request, K.k("no_access", lang), "fout")
+        return go("/kantoor")
+    p = sa_profiel(db, c)
+    leads = db.query(SALead).filter(SALead.company_id == c.id).order_by(SALead.created_at.desc()).limit(100).all()
+    totaal = db.query(SALead).filter(SALead.company_id == c.id, SALead.status == "verstuurd").count()
+    return render(request, "search.html", c, lang, p=p, leads=leads, totaal=totaal, alle_landen=SA.LANDEN,
+                  gekozen=set((p.landen or "").split(",")), bezig=SA.bezig(c.id), heeft_ww=bool(p.smtp_pass))
+
+
+@app.post("/search/instellingen")
+async def search_save(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if not heeft_app(db, c, "search") or c.is_demo:
+        return go("/kantoor")
+    form = await request.form()
+    p = sa_profiel(db, c)
+    p.aanbod = (form.get("aanbod") or "").strip()[:3000]
+    p.link = (form.get("link") or "").strip()[:255]
+    p.afzender = (form.get("afzender") or "").strip()[:255]
+    p.smtp_user = (form.get("smtp_user") or "").strip()[:255]
+    if (form.get("smtp_pass") or "").strip():
+        p.smtp_pass = SA.versleutel(form.get("smtp_pass").strip())
+    p.smtp_server = (form.get("smtp_server") or "smtp.gmail.com").strip()[:255]
+    try:
+        p.smtp_port = int(form.get("smtp_port") or 465)
+    except ValueError:
+        p.smtp_port = 465
+    p.landen = ",".join(x for x in form.getlist("landen") if x in SA.LANDEN) or "NL,BE"
+    p.niche = (form.get("niche") or "").strip()[:255]
+    try:
+        p.per_dag = max(1, min(SA.MAX_PER_DAG, int(form.get("per_dag") or SA.MAX_PER_DAG)))
+    except ValueError:
+        p.per_dag = SA.MAX_PER_DAG
+    p.aan = form.get("aan") == "1"
+    db.commit()
+    flash(request, K.k("s_saved", lang))
+    return go("/search")
+
+
+@app.post("/search/test")
+def search_test(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if not heeft_app(db, c, "search"):
+        return go("/kantoor")
+    p = sa_profiel(db, c)
+    if not p.smtp_user or not p.smtp_pass:
+        flash(request, K.k("s_incomplete", lang), "fout")
+        return go("/search")
+    ok, melding = SA.testmail(p)
+    flash(request, K.k("s_test_ok", lang) if ok else K.k("s_test_fail", lang, m=str(melding)[:150]), "ok" if ok else "fout")
+    return go("/search")
+
+
+@app.post("/search/ronde")
+def search_run(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if not heeft_app(db, c, "search"):
+        return go("/kantoor")
+    p = sa_profiel(db, c)
+    if not (p.aanbod and p.smtp_user and p.smtp_pass):
+        flash(request, K.k("s_incomplete", lang), "fout")
+        return go("/search")
+    SA.ronde_op_achtergrond(c.id)
+    flash(request, K.k("s_running", lang))
+    return go("/search")
+
+
+# ---------- dagelijkse ronde (wordt elke werkdag aangeroepen door GitHub Actions) ----------
+@app.api_route("/cron/dagelijks", methods=["GET", "POST"])
+def cron_dagelijks(db=Depends(get_db)):
+    actief = set()
+    for x in db.query(Company).filter(Company.is_active == True, Company.is_demo == False).all():  # noqa: E712
+        if heeft_app(db, x, "search"):
+            actief.add(x.id)
+    return {"gestart": SA.dagelijkse_ronde(actief)}
+
+
+@app.get("/cron/status")
+def cron_status():
+    return {"bezig": len(SA._BEZIG)}
 
 
 def company_ctx(request: Request, db):
@@ -708,7 +893,7 @@ def admin_page(request: Request, db=Depends(get_db)):
     subs = {}
     for s_ in db.query(AppSub).all():
         subs.setdefault(s_.company_id, {})[s_.app] = s_.status
-    apps = [(a["key"], a["name"]) for a in K.APPS if a["key"] != "offerte"] + [("controlroom", "Control room")]
+    apps = [(a["key"], a["name"]) for a in K.APPS] + [("controlroom", "Control room")]
     return render(request, "admin.html", c, c.lang, companies=companies, counts=counts, now=datetime.utcnow(),
                   subs=subs, apps=apps)
 

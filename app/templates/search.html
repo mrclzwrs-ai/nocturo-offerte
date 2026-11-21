@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Nocturo · Search & Analyze{% endblock %}
+{% block content %}
+<p><a href="/kantoor">{{ K('back_office') }}</a></p>
+<div class="kt-kop">
+  <div><h2>Nocturo</h2><h1>Search &amp; Analyze</h1></div>
+  <div class="mono kt-teller">{{ K('s_sent_total', n=totaal) }}{% if p.laatste_ronde %} · {{ K('s_last', d=DATE(p.laatste_ronde)) }}{% endif %}</div>
+</div>
+
+{% if bezig %}<div class="melding">{{ K('s_running') }}</div>{% endif %}
+{% if p.melding %}<div class="melding fout">{{ p.melding }}</div>{% endif %}
+
+<section class="paneel">
+  <h2>{{ K('s_settings') }}</h2>
+  <form method="post" action="/search/instellingen">
+    <div class="veld"><label>{{ K('s_offer') }}</label>
+      <textarea name="aanbod" rows="4" maxlength="3000" required>{{ p.aanbod }}</textarea>
+      <div class="hint">{{ K('s_offer_hint') }}</div></div>
+    <div class="rij2">
+      <div class="veld"><label>{{ K('s_link') }}</label><input name="link" value="{{ p.link }}" placeholder="https://"></div>
+      <div class="veld"><label>{{ K('s_sender') }}</label><input name="afzender" value="{{ p.afzender }}"></div>
+    </div>
+    <div class="rij2">
+      <div class="veld"><label>{{ K('s_smtp_user') }}</label><input type="email" name="smtp_user" value="{{ p.smtp_user }}" autocomplete="off"></div>
+      <div class="veld"><label>{{ K('s_smtp_pass') }}{% if heeft_ww %} ✓{% endif %}</label><input type="password" name="smtp_pass" autocomplete="new-password" placeholder="{{ '••••••••••••••••' if heeft_ww else '' }}"></div>
+    </div>
+    <div class="hint" style="margin:-6px 0 14px">{{ K('s_smtp_hint') }}</div>
+    <div class="rij2">
+      <div class="veld"><label>{{ K('s_server') }}</label>
+        <div style="display:flex;gap:8px"><input name="smtp_server" value="{{ p.smtp_server }}"><input name="smtp_port" value="{{ p.smtp_port }}" style="max-width:90px" inputmode="numeric"></div></div>
+      <div class="veld"><label>{{ K('s_per_day') }}</label><input name="per_dag" value="{{ p.per_dag }}" inputmode="numeric"></div>
+    </div>
+    <div class="veld"><label>{{ K('s_countries') }}</label>
+      <div style="display:flex;flex-wrap:wrap;gap:14px">
+      {% for x in alle_landen %}<label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--tekst)"><input type="checkbox" name="landen" value="{{ x }}" {{ 'checked' if x in gekozen }} style="width:auto"> {{ x }}</label>{% endfor %}
+      </div></div>
+    <div class="veld"><label>{{ K('s_niche') }}</label><input name="niche" value="{{ p.niche }}"></div>
+    <div class="veld"><label style="display:flex;gap:8px;align-items:center;color:var(--tekst)"><input type="checkbox" name="aan" value="1" {{ 'checked' if p.aan }} style="width:auto"> {{ K('s_on') }}</label></div>
+    <button class="knop">{{ K('s_save') }}</button>
+  </form>
+  <div class="knoppen" style="margin-top:14px">
+    <form method="post" action="/search/test"><button class="knop lijn">{{ K('s_test') }}</button></form>
+    <form method="post" action="/search/ronde"><button class="knop lijn" {{ 'disabled' if bezig }}>{{ K('s_run') }}</button></form>
+  </div>
+</section>
+
+<section class="paneel">
+  <h2>{{ K('s_log') }}</h2>
+  {% if not leads %}<p class="hint">{{ K('s_none') }}</p>{% endif %}
+  {% for x in leads %}
+    <details style="border-top:1px solid var(--lijn);padding:10px 0">
+      <summary style="cursor:pointer"><b>{{ x.winkelnaam or x.domein }}</b>
+        <span class="hint mono"> · {{ x.land }} · {{ DATE(x.created_at) }}{% if x.status != 'verstuurd' %} · <span style="color:var(--rood)">{{ K('s_failed') }}</span>{% endif %}</span></summary>
+      <div class="hint" style="margin:8px 0"><a href="{{ x.website }}" target="_blank" rel="noopener">{{ x.website }}</a> · {{ x.email }}</div>
+      {% if x.rapport %}<p class="hint">{{ x.rapport }}</p>{% endif %}
+      <p><b>{{ x.onderwerp }}</b></p>
+      <div style="white-space:pre-wrap;font-size:14px">{{ x.tekst }}</div>
+      {% if x.fout %}<p class="hint" style="color:var(--rood)">{{ x.fout }}</p>{% endif %}
+    </details>
+  {% endfor %}
+</section>
+{% endblock %}

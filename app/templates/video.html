@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Nocturo · Video Ads{% endblock %}
+{% block content %}
+<p><a href="/kantoor">{{ K('back_office') }}</a></p>
+<div class="kt-kop">
+  <div><h2>Nocturo</h2><h1>Video Ads</h1></div>
+  <div class="mono kt-teller">{{ K('v_left' if actief else 'v_left_trial', n=over, m=limiet) }}</div>
+</div>
+
+{% if not va_klaar %}<div class="melding fout">{{ K('v_not_ready') }}</div>{% endif %}
+
+<section class="paneel">
+  <h2>{{ K('v_new') }}</h2>
+  {% if over > 0 %}
+  <form method="post" action="/video/nieuw" enctype="multipart/form-data">
+    <div class="rij2">
+      <div class="veld"><label>{{ K('v_title') }}</label><input name="title" required maxlength="120"></div>
+      <div class="veld"><label>{{ K('v_price') }}</label><input name="price" inputmode="decimal" placeholder="29,95"></div>
+    </div>
+    <div class="veld"><label>{{ K('v_desc') }}</label><textarea name="description" rows="3" maxlength="2000"></textarea></div>
+    <div class="rij2">
+      <div class="veld"><label>{{ K('v_photos') }}</label><input type="file" name="fotos" accept="image/*" multiple required></div>
+      <div class="veld"><label>{{ K('v_lang') }}</label>
+        <select name="vlang">{% for l in langs %}<option value="{{ l }}" {{ 'selected' if l == lang }}>{{ lang_names[l] }}</option>{% endfor %}</select></div>
+    </div>
+    <button class="knop groot">{{ K('v_make') }}</button>
+  </form>
+  {% else %}
+    <p>{{ K('v_limit' if actief else 'v_trial_over') }}</p>
+    {% if not actief %}<a class="knop" href="/kantoor">{{ K('rent') }}</a>{% endif %}
+  {% endif %}
+</section>
+
+<section class="paneel">
+  <h2>{{ K('v_mine') }}</h2>
+  {% if not videos %}<p class="hint">{{ K('v_none') }}</p>{% endif %}
+  <div class="kt-apps">
+  {% for v in videos %}
+    <div class="kt-app {{ 'aan' if v.status == 'completed' else 'uit' }}">
+      {% if v.status == 'completed' %}
+        <video src="{{ v.url }}" poster="{{ v.thumb }}" controls playsinline preload="none" style="width:100%;border-radius:8px;background:#000;aspect-ratio:9/16"></video>
+      {% endif %}
+      <h3 style="font-size:17px">{{ v.title }}</h3>
+      <div class="mono hint">{{ DATE(v.created_at) }} · {{ v.lang|upper }}</div>
+      {% if v.status == 'completed' %}<a class="knop" href="{{ v.url }}" target="_blank" rel="noopener">{{ K('v_watch') }}</a>
+      {% elif v.status == 'failed' %}<span class="kt-noot" style="color:var(--rood)">{{ K('v_failed') }}</span>
+      {% else %}<span class="kt-noot">{{ K('v_busy') }}</span>{% endif %}
+    </div>
+  {% endfor %}
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}{% if bezig %}<script>setTimeout(function(){location.reload()},10000);</script>{% endif %}{% endblock %}
