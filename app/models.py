@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timedelta
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text, create_engine,
+    Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, create_engine,
 )
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
@@ -125,6 +125,18 @@ class Quote(Base):
     decided_by = Column(String(255), default="")
     created_at = Column(DateTime, default=datetime.utcnow)
     company = relationship("Company", back_populates="quotes")
+
+
+class AppSub(Base):
+    """Welke Nocturo-apps een account huurt (behalve Offerte, die heeft eigen proef/betaald)."""
+    __tablename__ = "nocturo_apps"
+    __table_args__ = (UniqueConstraint("company_id", "app", name="uq_company_app"),)
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    app = Column(String(30), nullable=False)          # search / video / pling / controlroom
+    status = Column(String(20), default="aangevraagd")  # aangevraagd / actief / uit
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
 
 
 def init_db():

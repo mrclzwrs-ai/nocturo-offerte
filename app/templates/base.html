@@ -9,15 +9,16 @@
 <meta name="theme-color" content="#08111A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css?v=4">
+<link rel="stylesheet" href="/static/style.css?v=5">
 </head>
 <body>
 {% if c %}
 <header class="kop">
   <div class="wrap">
-    <a class="merk" href="/offertes">{{ uil("kopuil") }}<b>NOCTURO</b><span>{{ T('app_name')|upper }}</span></a>
+    <a class="merk" href="/kantoor">{{ uil("kopuil") }}<b>NOCTURO</b><span>{{ (K('office') if request.url.path.startswith('/kantoor') else T('app_name'))|upper }}</span></a>
     <nav class="nav" id="nav">
       {% set p = request.url.path %}
+      <a href="/kantoor" class="{{ 'aan' if p.startswith('/kantoor') }}">{{ K('office') }}</a>
       <a href="/offertes" class="{{ 'aan' if p.startswith('/offerte') }}">{{ T('nav_quotes') }}</a>
       <a href="/nieuw" class="{{ 'aan' if p == '/nieuw' }}">{{ T('nav_new') }}</a>
       <a href="/prijslijst" class="{{ 'aan' if p.startswith('/prijslijst') }}">{{ T('nav_products') }}</a>

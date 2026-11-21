@@ -2,8 +2,8 @@
 {% from "_uil.html" import uil %}
 {% block content %}
 <div class="inlog">
-  <div class="logo">{{ uil("grooteuil") }}<b>NOCTURO</b><span>{{ T('app_name')|upper }}</span></div>
-  <p class="tag">{{ T('tagline') }}</p>
+  <div class="logo">{{ uil("grooteuil") }}<b>NOCTURO</b><span>{{ K('office')|upper }}</span></div>
+  <p class="tag">{{ K('tagline') }}</p>
   <div class="paneel">
     {% if error %}<div class="melding fout">{{ error }}</div>{% endif %}
     <form method="post" action="/login">

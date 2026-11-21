@@ -177,3 +177,35 @@ svg.uil{display:block;overflow:visible}
 .merk svg.uil{height:34px;width:auto;aspect-ratio:256/207;filter:drop-shadow(0 0 8px rgba(63,224,197,.35))}
 .inlog .logo svg.uil{height:76px;width:auto;aspect-ratio:256/207;margin:0 auto;filter:drop-shadow(0 0 18px rgba(63,224,197,.35))}
 .bezig .uilkop svg.uil{height:100%;width:100%}
+
+/* ---------- Nocturo-kantoor ---------- */
+.kt-kop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin:8px 0 22px}
+.kt-kop h1{margin:4px 0 0}
+.kt-teller{color:var(--grijs);font-size:13px}
+.kt-apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:18px}
+.kt-app{background:var(--paneel);border:1px solid var(--lijn);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.kt-app.aan{border-top:2px solid var(--turq)}
+.kt-app.uit{border-style:dashed;border-color:#2A3C4A}
+.kt-app h3{margin:0;font-size:20px;font-weight:600}
+.kt-app p{margin:0;color:var(--grijs);font-size:14px;line-height:1.55}
+.kt-st{display:inline-flex;align-items:center;gap:8px;font:12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--grijs)}
+.kt-st i{width:9px;height:9px;border-radius:50%;border:1px solid currentColor}
+.st-actief,.st-proef{color:var(--turq)}
+.st-actief i,.st-proef i{background:var(--turq);box-shadow:0 0 8px var(--turq);border-color:var(--turq)}
+.st-pilot,.st-aangevraagd{color:var(--oranje)}
+.st-pilot i{background:var(--oranje);border-color:var(--oranje)}
+.st-verlopen{color:var(--rood)}
+.kt-prijs{font-size:13px;color:var(--oranje)}
+.kt-knoppen{margin-top:auto}
+.kt-knoppen .knop,.kt-knoppen form,.kt-knoppen form .knop{width:100%}
+.kt-noot{display:block;font-size:13px;color:var(--grijs);border:1px solid var(--lijn);border-radius:8px;padding:11px;text-align:center}
+.knop.oranjevol{background:var(--oranje);color:#08111A}
+.knop.lijn.oranje{color:var(--oranje);border-color:var(--oranje)}
+.oranjetekst{color:var(--oranje)}
+.kt-cr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;background:linear-gradient(90deg,rgba(63,224,197,.10),var(--paneel))}
+.kt-cr p{margin:0;font-size:16px}
+.kt-onder{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.kt-gegevens{display:grid;grid-template-columns:1fr auto;gap:10px 16px;font-size:14px;margin-bottom:14px}
+.kt-gegevens span{color:var(--grijs)}
+.kt-gegevens b{font-weight:500;text-align:right;overflow-wrap:anywhere}
+.kt-totaal{border-top:1px solid var(--lijn);padding-top:10px}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Nocturo · {{ K('office') }}{% endblock %}
+{% block content %}
+<div class="kt-kop">
+  <div>
+    <h2>{{ K('office') }}</h2>
+    <h1>{{ K('office_title') }}</h1>
+  </div>
+  <div class="mono kt-teller">{{ K('apps_active', n=actief, m=kaarten|length) }}</div>
+</div>
+
+<div class="kt-apps">
+{% for a in kaarten %}
+  {% set aan = a.status in ['actief', 'proef'] %}
+  <section class="kt-app {{ 'aan' if aan else 'uit' }} {{ 'pilot' if a.status == 'pilot' }}">
+    <div class="kt-st st-{{ a.status }}"><i></i>
+      {% if a.status == 'proef' %}{{ K('st_proef', d=dagen if dagen is not none else 0) }}{% else %}{{ K('st_' ~ a.status) }}{% endif %}
+    </div>
+    <h3>{{ a.name }}</h3>
+    <p>{{ K('desc_' ~ a.key) }}</p>
+    <div class="mono kt-prijs">
+      {% if a.key == 'pling' %}{{ K('pling_price', p=MONEY(a.price)) }}
+      {% elif a.key == 'video' %}{{ MONEY(a.price) }} {{ K('per_month') }} · {{ K('videos15') }}
+      {% else %}{{ MONEY(a.price) }} {{ K('per_month') }}{% endif %}
+    </div>
+    <div class="kt-knoppen">
+      {% if aan and a.url %}
+        <a class="knop" href="{{ a.url }}">{{ K('open') }}</a>
+      {% elif aan %}
+        <span class="kt-noot">{{ K('soon') }}</span>
+      {% elif a.status == 'aangevraagd' %}
+        <span class="kt-noot">{{ K('requested_note') }}</span>
+      {% elif a.status == 'pilot' %}
+        <a class="knop lijn oranje" href="{{ a.url }}" target="_blank" rel="noopener">{{ K('join_pilot') }}</a>
+      {% else %}
+        <form method="post" action="/kantoor/huur/{{ a.key }}"><button class="knop oranjevol">{{ K('rent') }}</button></form>
+      {% endif %}
+    </div>
+  </section>
+{% endfor %}
+</div>
+
+<section class="paneel kt-cr">
+  <div>
+    <h2>{{ K('control_title') }}</h2>
+    <p>{{ K('control_text') }} <b class="mono oranjetekst">{{ MONEY(prijs_cr) }} {{ K('per_month') }}</b>
+      <span class="hint">({{ K('loose', p=MONEY(prijs_los)) }})</span></p>
+  </div>
+  {% if cr and cr.status == 'actief' %}
+    <span class="kt-st st-actief"><i></i>{{ K('st_actief') }}</span>
+  {% elif cr and cr.status == 'aangevraagd' %}
+    <span class="kt-noot">{{ K('st_aangevraagd') }} · {{ K('requested_note') }}</span>
+  {% else %}
+    <form method="post" action="/kantoor/huur/controlroom"><button class="knop">{{ K('rent_all') }}</button></form>
+  {% endif %}
+</section>
+
+<div class="kt-onder">
+  <section class="paneel">
+    <h2>{{ K('my_account') }}</h2>
+    <div class="kt-gegevens">
+      <span>{{ K('company') }}</span><b>{{ c.name }}</b>
+      <span>{{ T('email') }}</span><b>{{ c.email }}</b>
+      <span>{{ T('language') }}</span><b>{{ lang_names[lang] }}</b>
+    </div>
+    <a href="/instellingen">{{ K('edit_details') }}</a>
+  </section>
+  <section class="paneel">
+    <h2>{{ K('my_sub') }}</h2>
+    {% if cr and cr.status == 'actief' %}
+      <div class="kt-gegevens"><span>{{ K('control_title') }}</span><b class="mono">{{ MONEY(prijs_cr) }}</b></div>
+    {% elif gehuurd %}
+      <div class="kt-gegevens">
+        {% for a in gehuurd %}<span>{{ a.name }}</span><b class="mono">{{ MONEY(a.price) }}</b>{% endfor %}
+      </div>
+    {% else %}
+      <p class="hint">{{ K('nothing_yet') }}</p>
+    {% endif %}
+    <div class="kt-gegevens kt-totaal"><span>{{ K('total') }}</span><b class="mono oranjetekst">{{ MONEY(totaal) }}</b></div>
+    <p class="hint">{{ K('pay_note') }}</p>
+  </section>
+</div>
+{% endblock %}

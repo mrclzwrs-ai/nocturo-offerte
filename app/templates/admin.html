@@ -4,7 +4,7 @@
 <p class="sub">{{ companies|length }} accounts</p>
 <div class="paneel">
 <table class="lijst">
-  <thead><tr><th>Bedrijf</th><th class="verberg-mobiel">Aangemeld</th><th class="r">Offertes</th><th>Toegang</th><th></th></tr></thead>
+  <thead><tr><th>Bedrijf</th><th class="verberg-mobiel">Aangemeld</th><th class="r">Offertes</th><th>Offerte</th><th>Andere apps</th><th></th></tr></thead>
   <tbody>
   {% for x in companies %}
     <tr>
@@ -16,6 +16,17 @@
         {% elif x.paid_until and x.paid_until > now %}<span class="st akkoord">betaald t/m {{ DATE(x.paid_until) }}</span>
         {% elif x.trial_ends and x.trial_ends > now %}<span class="st verstuurd">proef t/m {{ DATE(x.trial_ends) }}</span>
         {% else %}<span class="st concept">verlopen</span>{% endif %}
+      </td>
+      <td style="font-size:13px">
+        <form method="post" action="/beheer/{{ x.id }}">
+        {% for key, naam in apps %}{% set st = (subs.get(x.id) or {}).get(key) %}
+          <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span>{{ naam }}: <b class="mono" style="color:{{ '#3FE0C5' if st == 'actief' else ('#F5A623' if st == 'aangevraagd' else '#8BA6BC') }}">{{ st or '–' }}</b></span>
+            {% if st == 'actief' %}<button class="knop gevaar klein" name="action" value="app:{{ key }}:uit">Uit</button>
+            {% else %}<button class="knop klein" name="action" value="app:{{ key }}:actief">Aan</button>{% endif %}
+          </div>
+        {% endfor %}
+        </form>
       </td>
       <td class="r">
         <form method="post" action="/beheer/{{ x.id }}" class="knoppen" style="justify-content:flex-end">

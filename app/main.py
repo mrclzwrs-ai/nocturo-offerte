@@ -18,7 +18,8 @@ from . import ai
 from .calc import lines_of, notes_of, totals
 from .i18n import LANGS, LANG_NAMES, STEPS, d, date_str, money, number, t
 from .mailer import mail_ready, send_quote_mail
-from .models import Company, Product, Quote, SessionLocal, init_db
+from .models import AppSub, Company, Product, Quote, SessionLocal, init_db
+from . import kantoor as K
 from .seed import DEMO_EMAIL, ensure_demo
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -108,7 +109,7 @@ def render(request: Request, name: str, company=None, lang=None, **ctx):
     ctx.update(
         request=request, c=company, lang=lang, langs=LANGS, lang_names=LANG_NAMES,
         T=lambda k, **kw: t(k, lang, **kw), MONEY=lambda v: money(v, lang), NUM=lambda v: number(v, lang),
-        DATE=lambda v: date_str(v, lang), flash=flash, steps=STEPS.get(lang, STEPS['nl']), is_admin=bool(company and ADMIN_EMAIL and company.email == ADMIN_EMAIL),
+        DATE=lambda v: date_str(v, lang), K=lambda k, **kw: K.k(k, lang, **kw), flash=flash, steps=STEPS.get(lang, STEPS['nl']), is_admin=bool(company and ADMIN_EMAIL and company.email == ADMIN_EMAIL),
     )
     return templates.TemplateResponse(request, name, ctx)
 
@@ -179,7 +180,7 @@ def health():
 
 @app.get("/")
 def home(request: Request, db=Depends(get_db)):
-    return go("/offertes" if current_company(request, db) else "/login")
+    return go("/kantoor" if current_company(request, db) else "/login")
 
 
 @app.get("/taal/{code}")
@@ -208,7 +209,7 @@ def login(request: Request, email: str = Form(...), password: str = Form(...), d
         return render(request, "login.html", error=t("wrong_login", ui_lang(request)), email=email)
     request.session.clear()
     request.session["cid"] = c.id
-    return go("/offertes")
+    return go("/kantoor")
 
 
 @app.get("/aanmelden", response_class=HTMLResponse)
@@ -232,7 +233,7 @@ def register(request: Request, name: str = Form(...), email: str = Form(...), pa
     db.commit()
     request.session.clear()
     request.session["cid"] = c.id
-    return go("/instellingen?welkom=1")
+    return go("/kantoor")
 
 
 @app.get("/demo")
@@ -252,6 +253,69 @@ def logout(request: Request):
     if lang:
         request.session["lang"] = lang
     return go("/login")
+
+
+# ---------- het Nocturo-kantoor ----------
+def subs_van(db, company) -> dict:
+    return {x.app: x for x in db.query(AppSub).filter(AppSub.company_id == company.id).all()}
+
+
+@app.get("/kantoor", response_class=HTMLResponse)
+def kantoor(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    subs = subs_van(db, c)
+    kaarten = K.kaarten(c, subs)
+    actief = sum(1 for x in kaarten if x["status"] in ("actief", "proef"))
+    gehuurd = [x for x in kaarten if x["status"] == "actief"]
+    cr = subs.get("controlroom")
+    return render(request, "kantoor.html", c, lang, kaarten=kaarten, actief=actief, gehuurd=gehuurd,
+                  totaal=K.maandbedrag(c, subs), cr=cr, prijs_cr=K.PRIJS_CONTROLROOM, prijs_los=K.PRIJS_LOS,
+                  dagen=c.trial_days_left())
+
+
+def _meld_aan_marcel(company, app_key: str):
+    """Stuur Marcel een mailtje bij een nieuwe aanvraag (alleen als mail is ingesteld)."""
+    if not (mail_ready() and ADMIN_EMAIL):
+        return
+    try:
+        import smtplib
+        from email.message import EmailMessage
+        msg = EmailMessage()
+        msg["From"] = os.environ.get("SMTP_FROM") or os.environ.get("SMTP_USER")
+        msg["To"] = ADMIN_EMAIL
+        msg["Reply-To"] = company.email
+        naam = {a["key"]: a["name"] for a in K.APPS}.get(app_key, "de hele control room")
+        msg["Subject"] = f"Nocturo: {company.name} wil {naam} huren"
+        msg.set_content(f"{company.name} ({company.email}) heeft in het kantoor gevraagd om {naam}.\n\n"
+                        f"Zet de app aan via /beheer zodra het geregeld is.")
+        with smtplib.SMTP(os.environ["SMTP_HOST"], int(os.environ.get("SMTP_PORT", "587")), timeout=30) as sm:
+            sm.starttls()
+            sm.login(os.environ["SMTP_USER"], os.environ["SMTP_PASSWORD"])
+            sm.send_message(msg)
+    except Exception as ex:  # een mislukte melding mag de klant niet tegenhouden
+        print("Melding aan Marcel mislukt:", ex)
+
+
+@app.post("/kantoor/huur/{app_key}")
+def kantoor_huur(app_key: str, request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if app_key not in K.APP_KEYS:
+        raise HTTPException(404)
+    if c.is_demo:
+        return go("/aanmelden")
+    sub = db.query(AppSub).filter(AppSub.company_id == c.id, AppSub.app == app_key).first()
+    if not sub:
+        sub = AppSub(company_id=c.id, app=app_key, status="aangevraagd")
+        db.add(sub)
+        db.commit()
+        _meld_aan_marcel(c, app_key)
+    elif sub.status == "uit":
+        sub.status = "aangevraagd"
+        sub.updated_at = datetime.utcnow()
+        db.commit()
+        _meld_aan_marcel(c, app_key)
+    flash(request, K.k("request_ok", lang))
+    return go("/kantoor")
 
 
 def company_ctx(request: Request, db):
@@ -641,7 +705,12 @@ def admin_page(request: Request, db=Depends(get_db)):
     c = need_admin(request, db)
     companies = db.query(Company).filter(Company.is_demo == False).order_by(Company.created_at.desc()).all()  # noqa: E712
     counts = {x.id: db.query(Quote).filter(Quote.company_id == x.id).count() for x in companies}
-    return render(request, "admin.html", c, c.lang, companies=companies, counts=counts, now=datetime.utcnow())
+    subs = {}
+    for s_ in db.query(AppSub).all():
+        subs.setdefault(s_.company_id, {})[s_.app] = s_.status
+    apps = [(a["key"], a["name"]) for a in K.APPS if a["key"] != "offerte"] + [("controlroom", "Control room")]
+    return render(request, "admin.html", c, c.lang, companies=companies, counts=counts, now=datetime.utcnow(),
+                  subs=subs, apps=apps)
 
 
 @app.post("/beheer/{cid}")
@@ -658,5 +727,14 @@ def admin_action(cid: int, request: Request, action: str = Form(...), db=Depends
         x.trial_ends = max(x.trial_ends or now, now) + timedelta(days=14)
     elif action == "aanuit":
         x.is_active = not x.is_active
+    elif action.startswith("app:"):
+        _, key, nieuw = (action.split(":") + ["", ""])[:3]
+        if key in K.APP_KEYS and nieuw in ("actief", "uit"):
+            sub = db.query(AppSub).filter(AppSub.company_id == x.id, AppSub.app == key).first()
+            if not sub:
+                sub = AppSub(company_id=x.id, app=key)
+                db.add(sub)
+            sub.status = nieuw
+            sub.updated_at = now
     db.commit()
     return go("/beheer")
