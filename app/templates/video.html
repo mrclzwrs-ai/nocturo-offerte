@@ -15,7 +15,7 @@
   <form method="post" action="/video/nieuw" enctype="multipart/form-data">
     <div class="rij2">
       <div class="veld"><label>{{ K('v_title') }}</label><input name="title" required maxlength="120"></div>
-      <div class="veld"><label>{{ K('v_price') }}</label><input name="price" inputmode="decimal" placeholder="29,95"></div>
+      <div class="veld"><label>{{ K('v_price') }}</label><input name="price" inputmode="decimal"></div>
     </div>
     <div class="veld"><label>{{ K('v_desc') }}</label><textarea name="description" rows="3" maxlength="2000"></textarea></div>
     <div class="rij2">
@@ -44,6 +44,7 @@
       <div class="mono hint">{{ DATE(v.created_at) }} · {{ v.lang|upper }}</div>
       {% if v.status == 'completed' %}<a class="knop" href="{{ v.url }}" target="_blank" rel="noopener">{{ K('v_watch') }}</a>
       {% elif v.status == 'failed' %}<span class="kt-noot" style="color:var(--rood)">{{ K('v_failed') }}</span>
+        <form method="post" action="/video/{{ v.id }}/opnieuw"><button class="knop">{{ K('v_retry') }}</button></form>
       {% else %}<span class="kt-noot">{{ K('v_busy') }}</span>{% endif %}
     </div>
   {% endfor %}

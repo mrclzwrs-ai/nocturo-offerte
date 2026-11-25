@@ -410,6 +410,30 @@ async def video_nieuw(request: Request, title: str = Form(...), price: str = For
     return go("/video")
 
 
+
+@app.post("/video/{vid}/opnieuw")
+def video_opnieuw(vid: int, request: Request, db=Depends(get_db)):
+    """Een mislukt filmpje met hetzelfde product en dezelfde foto's opnieuw laten maken."""
+    c, lang = company_ctx(request, db)
+    if c.is_demo:
+        return go("/aanmelden")
+    v = db.get(Video, vid)
+    if not v or v.company_id != c.id or v.status != "failed":
+        return go("/video")
+    actief = heeft_app(db, c, "video")
+    over, _ = VA.tegoed(db, c.id, actief)
+    if over <= 0:
+        flash(request, K.k("v_limit" if actief else "v_trial_over", lang), "fout")
+        return go("/video")
+    if not VA.klaar():
+        flash(request, K.k("v_not_ready", lang), "fout")
+        return go("/video")
+    v.status, v.error, v.render_id, v.voiceover, v.url, v.thumb = "pending", "", "", "", "", ""
+    db.commit()
+    VA.start_op_achtergrond(v.id, base_url(request), c.name, c.website or "")
+    flash(request, K.k("v_started", lang))
+    return go("/video")
+
 # ---------- Search & Analyze ----------
 def sa_profiel(db, c) -> SAProfiel:
     p = db.query(SAProfiel).filter(SAProfiel.company_id == c.id).first()
