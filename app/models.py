@@ -199,6 +199,7 @@ class Video(Base):
     price = Column(Float, default=0.0)
     description = Column(Text, default="")
     lang = Column(String(5), default="nl")
+    stijl = Column(String(20), default="foto")    # foto / luxe / licht
     media_tokens = Column(Text, default="")      # komma-gescheiden
     voiceover = Column(Text, default="")
     status = Column(String(20), default="pending")  # pending / processing / completed / failed
@@ -211,3 +212,15 @@ class Video(Base):
 
 def init_db():
     Base.metadata.create_all(engine)
+    # nieuwe kolommen bij bestaande tabellen
+    from sqlalchemy import text as _sql
+    try:
+        with engine.begin() as con:
+            if engine.dialect.name == "postgresql":
+                con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS stijl VARCHAR(20) DEFAULT 'foto'"))
+            else:
+                kols = [r[1] for r in con.execute(_sql("PRAGMA table_info(nocturo_video)"))]
+                if "stijl" not in kols:
+                    con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN stijl VARCHAR(20) DEFAULT 'foto'"))
+    except Exception as ex:
+        print("Kolom stijl toevoegen mislukt:", ex)

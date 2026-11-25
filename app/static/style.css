@@ -209,3 +209,17 @@ svg.uil{display:block;overflow:visible}
 .kt-gegevens span{color:var(--grijs)}
 .kt-gegevens b{font-weight:500;text-align:right;overflow-wrap:anywhere}
 .kt-totaal{border-top:1px solid var(--lijn);padding-top:10px}
+
+.stijlkeus{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:700px){.stijlkeus{grid-template-columns:1fr}}
+.stijl{display:block;cursor:pointer}
+.stijl input{position:absolute;opacity:0;pointer-events:none}
+.stijl-vlak{display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:10px;border:2px solid var(--lijn);min-height:86px}
+.stijl-vlak b{font-size:16px}
+.stijl-vlak small{font-size:13px;opacity:.8;line-height:1.4}
+.stijl input:checked + .stijl-vlak{border-color:var(--turq);box-shadow:0 0 0 2px rgba(64,224,200,.25)}
+.stijl-foto{background:linear-gradient(180deg,#3a3f46,#0d0d0d);color:#fff}
+.stijl-foto b{font-family:Impact,'Bebas Neue',sans-serif;letter-spacing:.04em;text-transform:uppercase}
+.stijl-luxe{background:#0A0A0C;color:#F5EFE3}
+.stijl-luxe b{font-family:Georgia,'Playfair Display',serif;color:#D9B86C;font-weight:500}
+.stijl-licht{background:#F3EFE8;color:#14161A}

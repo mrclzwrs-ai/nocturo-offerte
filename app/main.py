@@ -369,7 +369,7 @@ def video_page(request: Request, db=Depends(get_db)):
 
 @app.post("/video/nieuw")
 async def video_nieuw(request: Request, title: str = Form(...), price: str = Form("0"), description: str = Form(""),
-                      vlang: str = Form("nl"), fotos: list[UploadFile] = File(default=[]), db=Depends(get_db)):
+                      vlang: str = Form("nl"), stijl: str = Form("foto"), fotos: list[UploadFile] = File(default=[]), db=Depends(get_db)):
     c, lang = company_ctx(request, db)
     if c.is_demo:
         return go("/aanmelden")
@@ -402,7 +402,8 @@ async def video_nieuw(request: Request, title: str = Form(...), price: str = For
     except ValueError:
         prijs = 0.0
     v = Video(company_id=c.id, title=title.strip()[:255], price=prijs, description=description.strip()[:2000],
-              lang=vlang if vlang in LANGS else lang, media_tokens=",".join(tokens))
+              lang=vlang if vlang in LANGS else lang, media_tokens=",".join(tokens),
+              stijl=stijl if stijl in VA.STIJLEN else VA.STANDAARD_STIJL)
     db.add(v)
     db.commit()
     VA.start_op_achtergrond(v.id, base_url(request), c.name, c.website or "")

@@ -14,7 +14,13 @@ import requests
 
 from .models import SessionLocal, Video
 
-TEMPLATE_ID = os.environ.get("CREATOMATE_TEMPLATE_ID", "57d4692e-4428-4563-b410-93ab5a62b120")
+TEMPLATE_ID = os.environ.get("CREATOMATE_TEMPLATE_ID", "57d4692e-4428-4563-b410-93ab5a62b120")  # oude stijl
+STIJLEN = {
+    "foto": "210eac12-694a-4c54-a5f2-043a98dec42b",   # Foto vol
+    "luxe": "0786ffbc-0b61-4330-86e2-f0c0c4b8a6f0",   # Luxe
+    "licht": "9a180322-b407-4c63-bfb9-2281e98b5018",  # Strak licht
+}
+STANDAARD_STIJL = "foto"
 PER_MAAND = 15
 PROEF = 3
 
@@ -62,10 +68,21 @@ def prijs_tekst(p: float) -> str:
     return f"€ {(p or 0):.2f}".replace(".", ",")
 
 
+def lengte_voor(description: str) -> tuple[int, int]:
+    """Hoe meer de klant vertelt, hoe langer de stem mag praten: (seconden, woorden)."""
+    n = len((description or "").split())
+    if n < 15:
+        return 14, 35
+    if n < 45:
+        return 22, 55
+    return 30, 75
+
+
 def schrijf_voiceover(title, description, lang) -> str:
     from .ai import _client, MODEL
     slogan = random.choice(SLOGANS)
-    prompt = f"""Schrijf een korte, enthousiaste voice-overtekst voor een verkoopvideo van maximaal 14 seconden (maximaal 35 woorden) over dit product.
+    sec, woorden = lengte_voor(description)
+    prompt = f"""Schrijf een enthousiaste voice-overtekst voor een verkoopvideo van maximaal {sec} seconden (maximaal {woorden} woorden) over dit product. Gebruik de ruimte alleen als de omschrijving genoeg echte informatie geeft; is er weinig informatie, houd de tekst dan kort.
 Taal van de tekst: {lang} (nl = Nederlands, en = Engels, de = Duits, fr = Frans, es = Spaans).
 Product: {title}
 Omschrijving: {description}
@@ -110,9 +127,10 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
             f2 = fotos[1] if len(fotos) > 1 else f1
             f3 = fotos[2] if len(fotos) > 2 else f2
             f4 = fotos[3] if len(fotos) > 3 else f3
+            template_id = STIJLEN.get(getattr(v, "stijl", None) or STANDAARD_STIJL, STIJLEN[STANDAARD_STIJL])
             r = requests.post("https://api.creatomate.com/v1/renders", timeout=60, headers={
                 "Authorization": f"Bearer {os.environ['CREATOMATE_API_KEY']}", "Content-Type": "application/json"},
-                json={"template_id": TEMPLATE_ID, "modifications": {
+                json={"template_id": template_id, "modifications": {
                     "title.text": v.title, "price.text": prijs_tekst(v.price),
                     "product_image.source": f1, "image_2.source": f2, "image_3.source": f3, "image_4.source": f4,
                     "voiceover_audio.source": v.voiceover,

@@ -23,6 +23,15 @@
       <div class="veld"><label>{{ K('v_lang') }}</label>
         <select name="vlang">{% for l in langs %}<option value="{{ l }}" {{ 'selected' if l == lang }}>{{ lang_names[l] }}</option>{% endfor %}</select></div>
     </div>
+    <div class="veld"><label>{{ K('v_style') }}</label>
+      <div class="stijlkeus">
+        {% for key in ['foto', 'luxe', 'licht'] %}
+        <label class="stijl"><input type="radio" name="stijl" value="{{ key }}" {{ 'checked' if key == 'foto' }}>
+          <span class="stijl-vlak stijl-{{ key }}"><b>{{ K('st_' ~ key) }}</b><small>{{ K('st_' ~ key ~ '_uitleg') }}</small></span></label>
+        {% endfor %}
+      </div>
+      <div class="hint">{{ K('v_length_hint') }}</div>
+    </div>
     <button class="knop groot">{{ K('v_make') }}</button>
   </form>
   {% else %}
@@ -41,7 +50,7 @@
         <video src="{{ v.url }}" poster="{{ v.thumb }}" controls playsinline preload="none" style="width:100%;border-radius:8px;background:#000;aspect-ratio:9/16"></video>
       {% endif %}
       <h3 style="font-size:17px">{{ v.title }}</h3>
-      <div class="mono hint">{{ DATE(v.created_at) }} · {{ v.lang|upper }}</div>
+      <div class="mono hint">{{ DATE(v.created_at) }} · {{ v.lang|upper }}{% if v.stijl %} · {{ K('st_' ~ v.stijl) }}{% endif %}</div>
       {% if v.status == 'completed' %}<a class="knop" href="{{ v.url }}" target="_blank" rel="noopener">{{ K('v_watch') }}</a>
       {% elif v.status == 'failed' %}<span class="kt-noot" style="color:var(--rood)">{{ K('v_failed') }}</span>
         <form method="post" action="/video/{{ v.id }}/opnieuw"><button class="knop">{{ K('v_retry') }}</button></form>
