@@ -223,3 +223,12 @@ svg.uil{display:block;overflow:visible}
 .stijl-luxe{background:#0A0A0C;color:#F5EFE3}
 .stijl-luxe b{font-family:Georgia,'Playfair Display',serif;color:#D9B86C;font-weight:500}
 .stijl-licht{background:#F3EFE8;color:#14161A}
+
+.dg-keus{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+@media(max-width:700px){.dg-keus{grid-template-columns:1fr}}
+.dg-knop{display:flex;flex-direction:column;gap:8px;text-align:left;padding:26px;border-radius:14px;cursor:pointer;
+  background:var(--paneel);border:2px solid var(--lijn);color:inherit;font:inherit;min-height:170px}
+.dg-knop:hover,.dg-knop.gekozen{border-color:var(--turq)}
+.dg-knop b{font-size:22px;font-weight:600}
+.dg-knop .mono{color:var(--turq);font-size:13px;letter-spacing:.15em}
+.dg-knop small{color:var(--grijs);font-size:15px;line-height:1.5}

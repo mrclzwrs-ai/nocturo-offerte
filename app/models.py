@@ -61,6 +61,7 @@ class Company(Base):
     prefix = Column(String(20), default="OFF-")
     next_number = Column(Integer, default=1)
     terms = Column(Text, default="")
+    doelgroep = Column(String(10), default="")   # b2b / b2c, gekozen bij de eerste keer inloggen
     is_demo = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)   # Marcel kan een account aan/uit zetten
     paid_until = Column(DateTime, nullable=True)  # gezet zodra er betaald wordt
@@ -218,9 +219,13 @@ def init_db():
         with engine.begin() as con:
             if engine.dialect.name == "postgresql":
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS stijl VARCHAR(20) DEFAULT 'foto'"))
+                con.execute(_sql("ALTER TABLE companies ADD COLUMN IF NOT EXISTS doelgroep VARCHAR(10) DEFAULT ''"))
             else:
                 kols = [r[1] for r in con.execute(_sql("PRAGMA table_info(nocturo_video)"))]
                 if "stijl" not in kols:
                     con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN stijl VARCHAR(20) DEFAULT 'foto'"))
+                kols = [r[1] for r in con.execute(_sql("PRAGMA table_info(companies)"))]
+                if "doelgroep" not in kols:
+                    con.execute(_sql("ALTER TABLE companies ADD COLUMN doelgroep VARCHAR(10) DEFAULT ''"))
     except Exception as ex:
         print("Kolom stijl toevoegen mislukt:", ex)

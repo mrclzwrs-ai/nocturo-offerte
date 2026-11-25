@@ -20,6 +20,11 @@ APPS = [
     {"key": "pling", "name": "Pling", "price": 12.5, "url": "https://nocturoapps.com/pling/"},
 ]
 APP_KEYS = [a["key"] for a in APPS] + ["controlroom"]
+# Welke apps een klant in zijn kantoor ziet, naar wie hij verkoopt
+DOELGROEP_APPS = {
+    "b2b": ["search", "offerte", "video"],
+    "b2c": ["video", "pling"],
+}
 # Vriendenaccount: alles staat aan en het kost niets (alleen Marcel zet dit aan via /beheer)
 VRIEND = "vriend"
 
@@ -183,6 +188,34 @@ TEKSTEN.update({
     "v_none": ["Nog geen filmpjes.", "No videos yet.", "Noch keine Videos.", "Pas encore de vidéos.", "Aún no hay vídeos."],
     "v_busy": ["Wordt gemaakt… (ongeveer een minuut)", "Being made… (about a minute)", "Wird erstellt… (etwa eine Minute)", "En cours… (environ une minute)", "Creándose… (aprox. un minuto)"],
     "v_failed": ["Dit filmpje is mislukt.", "This video failed.", "Dieses Video ist fehlgeschlagen.", "Cette vidéo a échoué.", "Este vídeo ha fallado."],
+    "dg_kop": ["Eerst even kennismaken", "Let's get to know you", "Kurz kennenlernen", "Faisons connaissance", "Primero, conozcámonos"],
+    "dg_vraag": ["Aan wie verkoop jij?", "Who do you sell to?", "An wen verkaufen Sie?", "À qui vendez-vous ?", "¿A quién vendes?"],
+    "dg_uitleg": ["Dan laat je kantoor alleen de hulp zien die bij jou past. Je kunt het later altijd nog veranderen.",
+                  "Your office will then only show the help that fits you. You can always change it later.",
+                  "Ihr Büro zeigt dann nur die Hilfe, die zu Ihnen passt. Sie können das später jederzeit ändern.",
+                  "Votre bureau n'affichera alors que l'aide qui vous convient. Vous pourrez toujours changer plus tard.",
+                  "Tu oficina mostrará solo la ayuda que te conviene. Siempre puedes cambiarlo más tarde."],
+    "dg_b2b": ["Ik verkoop aan bedrijven", "I sell to businesses", "Ich verkaufe an Unternehmen", "Je vends aux entreprises", "Vendo a empresas"],
+    "dg_b2b_uitleg": ["Nieuwe zakelijke klanten vinden en mailen, offertes maken en reclamefilmpjes.",
+                      "Find and email new business customers, make quotes and promo videos.",
+                      "Neue Geschäftskunden finden und anschreiben, Angebote und Werbevideos erstellen.",
+                      "Trouver et contacter de nouveaux clients professionnels, faire des devis et des vidéos.",
+                      "Encontrar y escribir a nuevos clientes empresa, hacer presupuestos y vídeos."],
+    "dg_b2c": ["Ik verkoop aan particulieren", "I sell to consumers", "Ich verkaufe an Privatkunden", "Je vends aux particuliers", "Vendo a particulares"],
+    "dg_b2c_uitleg": ["Meer klanten in je winkel of webshop: reclamefilmpjes en aanbiedingen voor mensen in de buurt.",
+                      "More customers in your shop or webshop: promo videos and offers for people nearby.",
+                      "Mehr Kunden im Laden oder Webshop: Werbevideos und Angebote für Leute in der Nähe.",
+                      "Plus de clients en boutique ou en ligne : vidéos promo et offres pour les gens du quartier.",
+                      "Más clientes en tu tienda u online: vídeos promocionales y ofertas para la gente cercana."],
+    "dg_nu": ["Je verkoopt aan {w}", "You sell to {w}", "Sie verkaufen an {w}", "Vous vendez aux {w}", "Vendes a {w}"],
+    "dg_w_b2b": ["bedrijven (B2B)", "businesses (B2B)", "Unternehmen (B2B)", "entreprises (B2B)", "empresas (B2B)"],
+    "dg_w_b2c": ["particulieren (B2C)", "consumers (B2C)", "Privatkunden (B2C)", "particuliers (B2C)", "particulares (B2C)"],
+    "dg_wijzig": ["wijzigen", "change", "ändern", "modifier", "cambiar"],
+    "dg_binnenkort": ["Binnenkort in je kantoor: je eigen website laten nakijken, met verbeterpunten en een verkoopplan voor particulieren.",
+                      "Coming soon to your office: have your own website checked, with improvement tips and a sales plan for consumers.",
+                      "Demnächst in Ihrem Büro: Ihre eigene Website prüfen lassen, mit Verbesserungen und einem Verkaufsplan für Privatkunden.",
+                      "Bientôt dans votre bureau : faire vérifier votre site, avec des pistes d'amélioration et un plan de vente pour particuliers.",
+                      "Pronto en tu oficina: revisar tu propia web, con mejoras y un plan de ventas para particulares."],
     "v_style": ["Stijl van het filmpje", "Video style", "Stil des Videos", "Style de la vidéo", "Estilo del vídeo"],
     "st_foto": ["Foto vol", "Full photo", "Vollbild-Foto", "Photo pleine", "Foto completa"],
     "st_foto_uitleg": ["Je foto over het hele scherm, grote stoere letters.", "Your photo fills the screen, big bold letters.", "Ihr Foto füllt den Bildschirm, große kräftige Schrift.", "Votre photo plein écran, grandes lettres affirmées.", "Tu foto a pantalla completa, letras grandes y llamativas."],

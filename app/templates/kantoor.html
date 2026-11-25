@@ -8,6 +8,8 @@
   </div>
   <div class="mono kt-teller">{{ K('apps_active', n=actief, m=kaarten|length) }}</div>
 </div>
+{% if c.doelgroep %}<p class="hint">{{ K('dg_nu', w=K('dg_w_' ~ c.doelgroep)) }} · <a href="/kantoor/doelgroep">{{ K('dg_wijzig') }}</a></p>{% endif %}
+{% if c.doelgroep == 'b2c' %}<div class="melding">{{ K('dg_binnenkort') }}</div>{% endif %}
 
 <div class="kt-apps">
 {% for a in kaarten %}

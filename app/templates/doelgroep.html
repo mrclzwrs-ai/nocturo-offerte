@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Nocturo · {{ K('office') }}{% endblock %}
+{% block content %}
+<div class="kt-kop"><div><h2>{{ K('dg_kop') }}</h2><h1>{{ K('dg_vraag') }}</h1></div></div>
+<p class="hint">{{ K('dg_uitleg') }}</p>
+<form method="post" action="/kantoor/doelgroep" class="dg-keus">
+  {% for key in ['b2b', 'b2c'] %}
+  <button name="doelgroep" value="{{ key }}" class="dg-knop {{ 'gekozen' if c.doelgroep == key }}">
+    <b>{{ K('dg_' ~ key) }}</b>
+    <span class="mono">{{ key|upper }}</span>
+    <small>{{ K('dg_' ~ key ~ '_uitleg') }}</small>
+  </button>
+  {% endfor %}
+</form>
+{% endblock %}

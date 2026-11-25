@@ -267,11 +267,31 @@ def subs_van(db, company) -> dict:
     return {x.app: x for x in db.query(AppSub).filter(AppSub.company_id == company.id).all()}
 
 
+@app.get("/kantoor/doelgroep", response_class=HTMLResponse)
+def doelgroep_kies(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    return render(request, "doelgroep.html", c, lang)
+
+
+@app.post("/kantoor/doelgroep")
+def doelgroep_opslaan(request: Request, doelgroep: str = Form(...), db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if doelgroep in K.DOELGROEP_APPS and not c.is_demo:
+        c.doelgroep = doelgroep
+        db.commit()
+    return go("/kantoor")
+
+
 @app.get("/kantoor", response_class=HTMLResponse)
 def kantoor(request: Request, db=Depends(get_db)):
     c, lang = company_ctx(request, db)
+    if not getattr(c, "doelgroep", "") and not c.is_demo:
+        return go("/kantoor/doelgroep")
     subs = subs_van(db, c)
     kaarten = K.kaarten(c, subs)
+    zichtbaar = K.DOELGROEP_APPS.get(getattr(c, "doelgroep", "") or "", None)
+    if zichtbaar:
+        kaarten = [x for x in kaarten if x["key"] in zichtbaar]
     vriend = K.is_vriend(subs)
     cr_actief = (subs.get("controlroom") and subs["controlroom"].status == "actief") or vriend
     for x in kaarten:  # de hele control room of de beheerder: alles staat aan
