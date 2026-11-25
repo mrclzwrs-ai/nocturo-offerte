@@ -25,6 +25,13 @@ VOICE_IDS = {
 CTA = {"nl": "Bestel nu bij ", "en": "Shop now at ", "de": "Jetzt bestellen bei ",
        "fr": "Commandez sur ", "es": "Pide ahora en "}
 SLOGANS = ["Op is op!", "Wacht niet te lang!", "Mis het niet!", "Snel zijn is de boodschap!"]
+NOODTEKST = {
+    "nl": "{title}. En dat voor een scherpe prijs. Bestel nu bij ons. Mis het niet!",
+    "en": "{title}. And all for a great price. Order now from us. Don't miss out!",
+    "de": "{title}. Und das zu einem starken Preis. Jetzt bei uns bestellen. Nicht verpassen!",
+    "fr": "{title}. Et le tout à un prix imbattable. Commandez chez nous. Ne le manquez pas !",
+    "es": "{title}. Y todo a un precio genial. Pídelo ya con nosotros. ¡No te lo pierdas!",
+}
 MUSIC = ["https://cdn.creatomate.com/demo/music1.mp3", "https://cdn.creatomate.com/demo/music2.mp3",
          "https://cdn.creatomate.com/demo/music3.mp3"]
 
@@ -71,9 +78,19 @@ Regels:
 4. Eindig met een korte oproep om te bestellen, alsof de winkel zelf praat. Noem NOOIT de naam van de winkel of het webadres, maar zeg 'bij ons' in de taal van de tekst. Zeg nooit 'link in bio'.
 5. Sluit af met de slotkreet hierboven; is de tekst niet Nederlands, vertaal de kreet dan naar een natuurlijke kreet in die taal.
 Geef alleen de tekst terug."""
-    msg = _client().messages.create(model=MODEL, max_tokens=400,
-                                    messages=[{"role": "user", "content": prompt}])
-    return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text").strip()
+    client = _client()
+    for poging in (1, 2):
+        msg = client.messages.create(model=MODEL, max_tokens=2000,
+                                     messages=[{"role": "user", "content": prompt}])
+        tekst = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text").strip()
+        if tekst:
+            return tekst
+        soorten = [getattr(b, "type", "?") for b in msg.content]
+        print(f"Voice-over leeg (poging {poging}): stop_reason={getattr(msg, 'stop_reason', '?')}, "
+              f"blokken={soorten}, model={MODEL}")
+    # Noodtekst, zodat de klant altijd een filmpje krijgt (alleen de productnaam, niets verzonnen).
+    print("Voice-over: noodtekst gebruikt")
+    return NOODTEKST.get(lang, NOODTEKST["nl"]).format(title=title)
 
 
 def _start(video_id: int, base_url: str, shop_name: str, website: str):
