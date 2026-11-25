@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Nocturo · {{ K('wc_naam') }}{% endblock %}
+{% block content %}
+<p><a href="/kantoor">{{ K('back_office') }}</a></p>
+<div class="kt-kop">
+  <div><h2>Nocturo</h2><h1>{{ K('wc_naam') }}</h1></div>
+  <div class="mono kt-teller">{{ K('wc_over', n=over, m=limiet) }}</div>
+</div>
+
+<section class="paneel">
+  <p>{{ K('wc_kort') }}</p>
+  {% if bezig %}
+    <div class="melding">{{ K('wc_bezig') }}</div>
+  {% elif over > 0 %}
+  <form method="post" action="/check/nieuw" class="rij2" style="align-items:end">
+    <div class="veld"><label>{{ K('wc_url') }}</label>
+      <input name="url" required maxlength="500" inputmode="url" value="{{ c.website or '' }}" placeholder="www.jouwwinkel.nl"></div>
+    <div class="veld"><button class="knop groot">{{ K('wc_start') }}</button></div>
+  </form>
+  {% else %}
+    <p>{{ K('wc_op') }}</p>
+  {% endif %}
+  {% if checks and checks[0].status == 'failed' %}<div class="melding fout">{{ K('wc_mislukt') }}</div>{% endif %}
+</section>
+
+{% if rapport %}
+<section class="paneel wc">
+  <div class="mono hint">{{ laatste.url }} · {{ DATE(laatste.created_at) }}</div>
+  <h2>{{ K('wc_samenvatting') }}</h2>
+  <p class="wc-groot">{{ rapport.samenvatting }}</p>
+
+  {% if rapport.sterke_punten %}
+  <h2>{{ K('wc_sterk') }}</h2>
+  <ul class="wc-lijst">{% for x in rapport.sterke_punten %}<li>✓ {{ x }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  <h2>{{ K('wc_beter') }}</h2>
+  <div class="wc-punten">
+  {% for p in rapport.verbeterpunten %}
+    <div class="wc-punt b-{{ p.belang }}">
+      <span class="mono wc-belang">{{ K('wc_belang_' ~ p.belang) }}</span>
+      <b>{{ p.titel }}</b>
+      <p>{{ p.uitleg }}</p>
+    </div>
+  {% endfor %}
+  </div>
+</section>
+
+<section class="paneel wc">
+  <h2>{{ K('wc_plan') }}</h2>
+  <h3>{{ K('wc_kanalen') }}</h3>
+  <div class="wc-punten">
+  {% for k in rapport.kanalen %}
+    <div class="wc-punt"><b>{{ k.kanaal }}</b><span class="mono wc-belang">{{ k.hoe_vaak }}</span><p>{{ k.waarom }}</p></div>
+  {% endfor %}
+  </div>
+
+  <h3>{{ K('wc_producten') }}</h3>
+  <ul class="wc-lijst">{% for p in rapport.producten_eerst %}<li><b>{{ p.naam }}</b>: {{ p.waarom }}</li>{% endfor %}</ul>
+
+  <h3>{{ K('wc_weken') }}</h3>
+  {% for w in rapport.weken %}
+    <div class="wc-week">
+      <div class="mono wc-belang">{{ K('wc_week', n=w.week) }} · {{ w.thema }}</div>
+      {% for f in w.filmpjes %}
+        <div class="wc-film">
+          <div><b>{{ f.titel }}</b><p>{{ f.omschrijving }}</p></div>
+          <a class="knop lijn" href="/video?titel={{ f.titel|urlencode }}&omschrijving={{ f.omschrijving|urlencode }}">{{ K('wc_maak') }}</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+  <h3>{{ K('wc_verwachting') }}</h3>
+  <p>{{ rapport.verwachting }}</p>
+  <p class="hint">{{ K('wc_advies') }}</p>
+</section>
+{% endif %}
+
+{% if checks|length > 1 %}
+<section class="paneel">
+  <h2>{{ K('wc_eerder') }}</h2>
+  <ul class="wc-lijst">{% for x in checks[1:] %}<li class="mono">{{ DATE(x.created_at) }} · {{ x.url }}{% if x.status == "failed" %} · ✗{% endif %}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}{% if bezig %}<script>setTimeout(function(){location.reload()},8000);</script>{% endif %}{% endblock %}

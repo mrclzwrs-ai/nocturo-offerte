@@ -18,7 +18,8 @@ from . import ai
 from .calc import lines_of, notes_of, totals
 from .i18n import LANGS, LANG_NAMES, STEPS, d, date_str, money, number, t
 from .mailer import mail_ready, send_quote_mail
-from .models import AppSub, Company, Media, Product, Quote, SAProfiel, SALead, SessionLocal, Video, init_db
+from .models import AppSub, Company, Media, Product, Quote, SAProfiel, SALead, SessionLocal, Video, WebsiteCheck, init_db
+from . import check as WC
 from . import video as VA
 from .sa import klant as SA
 from . import kantoor as K
@@ -383,7 +384,8 @@ def video_page(request: Request, db=Depends(get_db)):
     VA.ververs(db, videos)
     over, limiet = VA.tegoed(db, c.id, actief)
     bezig = any(v.status in ("pending", "processing") for v in videos)
-    return render(request, "video.html", c, lang, videos=videos, actief=actief, over=over, limiet=limiet,
+    vooraf = {"titel": request.query_params.get("titel", "")[:120], "omschrijving": request.query_params.get("omschrijving", "")[:2000]}
+    return render(request, "video.html", c, lang, videos=videos, actief=actief, over=over, limiet=limiet, vooraf=vooraf,
                   bezig=bezig, va_klaar=VA.klaar())
 
 
@@ -454,6 +456,51 @@ def video_opnieuw(vid: int, request: Request, db=Depends(get_db)):
     VA.start_op_achtergrond(v.id, base_url(request), c.name, c.website or "")
     flash(request, K.k("v_started", lang))
     return go("/video")
+
+
+# ---------- Website-check & verkoopplan (hoort bij Video Ads) ----------
+def check_tegoed(db, c) -> tuple[int, int]:
+    actief = heeft_app(db, c, "video")
+    q = db.query(WebsiteCheck).filter(WebsiteCheck.company_id == c.id, WebsiteCheck.status != "failed")
+    if actief:
+        nu = datetime.utcnow()
+        n = q.filter(WebsiteCheck.created_at >= datetime(nu.year, nu.month, 1)).count()
+        return max(0, WC.PER_MAAND - n), WC.PER_MAAND
+    return max(0, WC.PROEF - q.count()), WC.PROEF
+
+
+@app.get("/check", response_class=HTMLResponse)
+def check_page(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    checks = db.query(WebsiteCheck).filter(WebsiteCheck.company_id == c.id).order_by(WebsiteCheck.created_at.desc()).limit(10).all()
+    laatste = next((x for x in checks if x.status == "done"), None)
+    rapport = json.loads(laatste.result_json) if laatste and laatste.result_json else None
+    bezig = any(x.status in ("pending", "processing") for x in checks)
+    over, limiet = check_tegoed(db, c)
+    return render(request, "check.html", c, lang, checks=checks, laatste=laatste, rapport=rapport, bezig=bezig,
+                  over=over, limiet=limiet, video_actief=heeft_app(db, c, "video"))
+
+
+@app.post("/check/nieuw")
+def check_nieuw(request: Request, url: str = Form(...), db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if c.is_demo:
+        return go("/aanmelden")
+    over, _ = check_tegoed(db, c)
+    if over <= 0:
+        flash(request, K.k("wc_op", lang), "fout")
+        return go("/check")
+    url = url.strip()[:500]
+    if not url:
+        return go("/check")
+    if not c.website:
+        c.website = url
+    x = WebsiteCheck(company_id=c.id, url=url)
+    db.add(x)
+    db.commit()
+    WC.start_op_achtergrond(x.id, c.name, lang)
+    flash(request, K.k("wc_gestart", lang))
+    return go("/check")
 
 # ---------- Search & Analyze ----------
 def sa_profiel(db, c) -> SAProfiel:

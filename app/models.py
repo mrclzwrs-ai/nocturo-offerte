@@ -211,6 +211,18 @@ class Video(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class WebsiteCheck(Base):
+    """Eén website-check met verkoopplan (hoort bij Video Ads)."""
+    __tablename__ = "nocturo_check"
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    url = Column(String(500), default="")
+    status = Column(String(20), default="pending")  # pending / processing / done / failed
+    result_json = Column(Text, default="")
+    error = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 def init_db():
     Base.metadata.create_all(engine)
     # nieuwe kolommen bij bestaande tabellen

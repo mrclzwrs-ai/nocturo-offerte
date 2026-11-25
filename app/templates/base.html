@@ -9,13 +9,13 @@
 <meta name="theme-color" content="#08111A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css?v=7">
+<link rel="stylesheet" href="/static/style.css?v=8">
 </head>
 <body>
 {% if c %}
 <header class="kop">
   <div class="wrap">
-    <a class="merk" href="/kantoor">{{ uil("kopuil") }}<b>NOCTURO</b>{% set kp = request.url.path %}<span>{{ (K('office') if kp.startswith('/kantoor') else 'Video Ads' if kp.startswith('/video') else 'Search & Analyze' if kp.startswith('/search') else T('admin') if kp.startswith('/beheer') else T('app_name'))|upper }}</span></a>
+    <a class="merk" href="/kantoor">{{ uil("kopuil") }}<b>NOCTURO</b>{% set kp = request.url.path %}<span>{{ (K('office') if kp.startswith('/kantoor') else 'Video Ads' if kp.startswith('/video') else K('wc_naam') if kp.startswith('/check') else 'Search & Analyze' if kp.startswith('/search') else T('admin') if kp.startswith('/beheer') else T('app_name'))|upper }}</span></a>
     <nav class="nav" id="nav">
       {% set p = request.url.path %}
       <a href="/kantoor" class="{{ 'aan' if p.startswith('/kantoor') }}">{{ K('office') }}</a>
