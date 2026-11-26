@@ -20,6 +20,7 @@ from .i18n import LANGS, LANG_NAMES, STEPS, d, date_str, money, number, t
 from .mailer import mail_ready, send_quote_mail
 from .models import AppSub, Company, Media, Product, Quote, SAProfiel, SALead, SessionLocal, Video, WebsiteCheck, init_db
 from . import check as WC
+from .vragen import vragen_in
 from . import video as VA
 from .sa import klant as SA
 from . import kantoor as K
@@ -468,6 +469,12 @@ def video_opnieuw(vid: int, request: Request, db=Depends(get_db)):
     flash(request, K.k("v_started", lang))
     return go("/video")
 
+
+
+@app.get("/vragen", response_class=HTMLResponse)
+def vragen_page(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    return render(request, "vragen.html", c, lang, vragen=vragen_in(lang))
 
 # ---------- Website-check & verkoopplan (hoort bij Video Ads) ----------
 def check_tegoed(db, c) -> tuple[int, int]:

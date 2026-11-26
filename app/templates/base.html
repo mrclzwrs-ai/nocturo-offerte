@@ -9,13 +9,13 @@
 <meta name="theme-color" content="#08111A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css?v=9">
+<link rel="stylesheet" href="/static/style.css?v=10">
 </head>
 <body>
 {% if c %}
 <header class="kop">
   <div class="wrap">
-    <a class="merk" href="/kantoor">{{ uil("kopuil") }}<b>NOCTURO</b>{% set kp = request.url.path %}<span>{{ (K('office') if kp.startswith('/kantoor') else 'Video Ads' if kp.startswith('/video') else K('wc_naam') if kp.startswith('/check') else 'Search & Analyze' if kp.startswith('/search') else T('admin') if kp.startswith('/beheer') else T('app_name'))|upper }}</span></a>
+    <a class="merk" href="/kantoor">{{ uil("kopuil") }}<b>NOCTURO</b>{% set kp = request.url.path %}<span>{{ (K('office') if kp.startswith('/kantoor') else 'Video Ads' if kp.startswith('/video') else K('wc_naam') if kp.startswith('/check') else 'Search & Analyze' if kp.startswith('/search') else K('faq') if kp.startswith('/vragen') else T('admin') if kp.startswith('/beheer') else T('app_name'))|upper }}</span></a>
     <nav class="nav" id="nav">
       {% set p = request.url.path %}
       <a href="/kantoor" class="{{ 'aan' if p.startswith('/kantoor') }}">{{ K('office') }}</a>
@@ -23,6 +23,7 @@
       <a href="/nieuw" class="{{ 'aan' if p == '/nieuw' }}">{{ T('nav_new') }}</a>
       <a href="/prijslijst" class="{{ 'aan' if p.startswith('/prijslijst') }}">{{ T('nav_products') }}</a>
       <a href="/instellingen" class="{{ 'aan' if p.startswith('/instellingen') }}">{{ T('nav_settings') }}</a>
+      <a href="/vragen" class="{{ 'aan' if p.startswith('/vragen') }}">{{ K('faq') }}</a>
       {% if is_admin %}<a href="/beheer" class="{{ 'aan' if p.startswith('/beheer') }}">{{ T('admin') }}</a>{% endif %}
     </nav>
     <div class="rechts">

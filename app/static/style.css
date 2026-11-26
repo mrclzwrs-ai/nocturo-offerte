@@ -257,3 +257,10 @@ svg.uil{display:block;overflow:visible}
 .muz small{color:var(--grijs);font-size:13px}
 .muz:has(input:checked){border-color:var(--turq)}
 .speel{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--turq);background:transparent;color:var(--turq);font-size:16px;cursor:pointer}
+
+.faq details{border-bottom:1px solid var(--lijn);padding:4px 0}
+.faq summary{cursor:pointer;padding:14px 0;font-size:17px;font-weight:600;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"+";display:inline-block;width:24px;color:var(--turq)}
+.faq details[open] summary::before{content:"–"}
+.faq details p{margin:0 0 14px 24px;color:var(--grijs);line-height:1.6}
