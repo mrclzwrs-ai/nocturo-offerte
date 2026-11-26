@@ -263,6 +263,7 @@ TEKSTEN.update({
     "mz_stoer_duur": ["Stoer en duur", "Bold and luxurious", "Kraftvoll und edel", "Audacieux et luxueux", "Potente y lujoso"],
     "mz_stoer_energiek": ["Stoer en energiek", "Bold and energetic", "Kraftvoll und energisch", "Audacieux et énergique", "Potente y enérgico"],
     "mz_fris_vrolijk": ["Fris en vrolijk", "Fresh and cheerful", "Frisch und fröhlich", "Frais et joyeux", "Fresco y alegre"],
+    "mz_spiritueel": ["Spiritueel en rustig", "Spiritual and calm", "Spirituell und ruhig", "Spirituel et apaisant", "Espiritual y tranquilo"],
     "mz_rustig_warm": ["Rustig en warm", "Calm and warm", "Ruhig und warm", "Calme et chaleureux", "Tranquilo y cálido"],
     "v_style": ["Stijl van het filmpje", "Video style", "Stil des Videos", "Style de la vidéo", "Estilo del vídeo"],
     "st_foto": ["Foto vol", "Full photo", "Vollbild-Foto", "Photo pleine", "Foto completa"],
