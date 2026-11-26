@@ -41,6 +41,8 @@
           <button type="button" class="speel" data-src="/static/muziek/{{ m.key }}.mp3" aria-label="{{ K('v_music_play') }}">▶</button></label>
         {% endfor %}
       </div>
+      <div class="hint">{{ K('mz_rechten') }}</div>
+      <div class="hint">{{ K('mz_opmaat') }} <a href="mailto:info@nocturoapps.com?subject={{ K('mz_opmaat_onderwerp')|urlencode }}">info@nocturoapps.com</a></div>
     </div>
     <button class="knop groot">{{ K('v_make') }}</button>
   </form>
