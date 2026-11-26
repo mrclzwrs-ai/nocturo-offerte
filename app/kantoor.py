@@ -189,6 +189,7 @@ TEKSTEN.update({
     "v_none": ["Nog geen filmpjes.", "No videos yet.", "Noch keine Videos.", "Pas encore de vidéos.", "Aún no hay vídeos."],
     "v_busy": ["Wordt gemaakt… (ongeveer een minuut)", "Being made… (about a minute)", "Wird erstellt… (etwa eine Minute)", "En cours… (environ une minute)", "Creándose… (aprox. un minuto)"],
     "v_failed": ["Dit filmpje is mislukt.", "This video failed.", "Dieses Video ist fehlgeschlagen.", "Cette vidéo a échoué.", "Este vídeo ha fallado."],
+    "naar_site": ["Terug naar nocturoapps.com", "Back to nocturoapps.com", "Zurück zu nocturoapps.com", "Retour à nocturoapps.com", "Volver a nocturoapps.com"],
     "wc_naam": ["Company Analyzer", "Company Analyzer", "Company Analyzer", "Company Analyzer", "Company Analyzer"],
     "wc_inbegrepen": ["Inbegrepen bij Video Ads", "Included with Video Ads", "In Video Ads enthalten", "Inclus avec Video Ads", "Incluido con Video Ads"],
     "wc_kort": ["Laat een website analyseren: verbeterpunten en een verkoopplan voor particulieren, met ideeën voor filmpjes.",

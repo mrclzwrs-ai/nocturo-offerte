@@ -15,6 +15,7 @@
   </div>
   <a class="knop lijn" style="width:100%" href="/demo">{{ T('try_demo') }}</a>
   <p class="of">{{ T('no_account') }} <a href="/aanmelden">{{ T('start_trial') }}</a></p>
+  <p class="of"><a href="https://nocturoapps.com">← {{ K('naar_site') }}</a></p>
   <p class="of">{% for l in langs %}<a href="/taal/{{ l }}" style="margin:0 6px;{{ 'color:var(--tekst)' if l == lang }}">{{ l|upper }}</a>{% endfor %}</p>
 </div>
 {% endblock %}
