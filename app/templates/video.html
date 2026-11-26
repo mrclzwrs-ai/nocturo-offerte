@@ -62,7 +62,7 @@
         <video src="{{ v.url }}" poster="{{ v.thumb }}" controls playsinline preload="none" style="width:100%;border-radius:8px;background:#000;aspect-ratio:9/16"></video>
       {% endif %}
       <h3 style="font-size:17px">{{ v.title }}</h3>
-      <div class="mono hint">{{ DATE(v.created_at) }} · {{ v.lang|upper }}{% if v.stijl %} · {{ K('st_' ~ v.stijl) }}{% endif %}</div>
+      <div class="mono hint">{{ DATE(v.created_at) }} · {{ v.lang|upper }}{% if v.stijl and v.created_at and v.created_at.strftime('%Y-%m-%d %H:%M') > '2026-11-25 16:41' %} · {{ K('st_' ~ v.stijl) }}{% endif %}</div>
       {% if v.status == 'completed' %}<a class="knop" href="{{ v.url }}" target="_blank" rel="noopener">{{ K('v_watch') }}</a>
       {% elif v.status == 'failed' %}<span class="kt-noot" style="color:var(--rood)">{{ K('v_failed') }}</span>
         <form method="post" action="/video/{{ v.id }}/opnieuw"><button class="knop">{{ K('v_retry') }}</button></form>
