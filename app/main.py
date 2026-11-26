@@ -225,6 +225,90 @@ def login(request: Request, email: str = Form(...), password: str = Form(...), d
     return go("/kantoor")
 
 
+# ---------- Wachtwoord vergeten ----------
+def _reset_token(c, uren: int = 2) -> str:
+    exp = int(time.time()) + uren * 3600
+    sig = hmac.new(SECRET_KEY.encode(), f"{c.id}.{exp}.{c.password_hash[-16:]}".encode(), hashlib.sha256).hexdigest()[:32]
+    return f"{c.id}.{exp}.{sig}"
+
+
+def _reset_company(db, token: str):
+    try:
+        cid, exp, sig = token.split(".")
+        c = db.get(Company, int(cid))
+        if not c or c.is_demo or int(exp) < time.time():
+            return None
+        goed = hmac.new(SECRET_KEY.encode(), f"{c.id}.{exp}.{c.password_hash[-16:]}".encode(), hashlib.sha256).hexdigest()[:32]
+        return c if hmac.compare_digest(goed, sig) else None
+    except Exception:
+        return None
+
+
+def _stuur_reset_mail(c, link: str, lang: str) -> bool:
+    if not mail_ready():
+        print("Wachtwoord-mail niet verstuurd: mail is niet ingesteld")
+        return False
+    try:
+        import smtplib
+        from email.message import EmailMessage
+        from email.utils import formataddr
+        msg = EmailMessage()
+        afzender = os.environ.get("SMTP_FROM") or os.environ.get("SMTP_USER")
+        msg["From"] = formataddr(("Nocturo", afzender))
+        msg["To"] = c.email
+        msg["Subject"] = K.k("pw_mail_onderwerp", lang)
+        msg.set_content(K.k("pw_mail_tekst", lang, naam=c.name, link=link))
+        with smtplib.SMTP(os.environ["SMTP_HOST"], int(os.environ.get("SMTP_PORT", "587")), timeout=30) as sm:
+            sm.starttls()
+            sm.login(os.environ["SMTP_USER"], os.environ["SMTP_PASSWORD"])
+            sm.send_message(msg)
+        return True
+    except Exception as ex:
+        print("Wachtwoord-mail mislukt:", ex)
+        return False
+
+
+@app.get("/wachtwoord-vergeten", response_class=HTMLResponse)
+def pw_vergeten_page(request: Request):
+    return render(request, "wachtwoord.html", stap="vraag")
+
+
+@app.post("/wachtwoord-vergeten", response_class=HTMLResponse)
+def pw_vergeten(request: Request, email: str = Form(...), db=Depends(get_db)):
+    lang = ui_lang(request)
+    c = db.query(Company).filter(Company.email == email.strip().lower()).first()
+    gelukt = True
+    if c and not c.is_demo:
+        link = f"{base_url(request)}/wachtwoord-nieuw?t={_reset_token(c)}"
+        gelukt = _stuur_reset_mail(c, link, c.lang or lang)
+    # Altijd dezelfde melding, zodat niemand kan uitzoeken welke adressen bij ons bekend zijn.
+    return render(request, "wachtwoord.html", stap="verstuurd" if gelukt else "geen_mail")
+
+
+@app.get("/wachtwoord-nieuw", response_class=HTMLResponse)
+def pw_nieuw_page(request: Request, t: str = "", db=Depends(get_db)):
+    c = _reset_company(db, t)
+    return render(request, "wachtwoord.html", stap="nieuw" if c else "verlopen", token=t)
+
+
+@app.post("/wachtwoord-nieuw", response_class=HTMLResponse)
+def pw_nieuw(request: Request, t: str = Form(...), password: str = Form(...), password2: str = Form(...), db=Depends(get_db)):
+    lang = ui_lang(request)
+    c = _reset_company(db, t)
+    if not c:
+        return render(request, "wachtwoord.html", stap="verlopen")
+    if len(password) < 8:
+        return render(request, "wachtwoord.html", stap="nieuw", token=t, error=K.k("pw_kort", lang))
+    if password != password2:
+        return render(request, "wachtwoord.html", stap="nieuw", token=t, error=K.k("pw_anders", lang))
+    c.password_hash = hash_pw(password)
+    db.commit()
+    request.session.clear()
+    request.session["cid"] = c.id
+    flash(request, K.k("pw_klaar", lang))
+    return go("/kantoor")
+
+
 @app.get("/aanmelden", response_class=HTMLResponse)
 def register_page(request: Request):
     return render(request, "register.html")

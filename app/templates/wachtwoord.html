@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_uil.html" import uil %}
+{% block content %}
+<div class="inlog">
+  <div class="logo">{{ uil("grooteuil") }}<b>NOCTURO</b><span>{{ K('office')|upper }}</span></div>
+  <div class="paneel">
+    {% if error %}<div class="melding fout">{{ error }}</div>{% endif %}
+    {% if stap == 'vraag' %}
+      <h2>{{ K('pw_vergeten') }}</h2>
+      <p class="hint">{{ K('pw_uitleg') }}</p>
+      <form method="post" action="/wachtwoord-vergeten">
+        <div class="veld"><label>{{ T('email') }}</label><input type="email" name="email" autocomplete="email" required></div>
+        <button class="knop groot" style="width:100%">{{ K('pw_stuur') }}</button>
+      </form>
+    {% elif stap == 'verstuurd' %}
+      <h2>{{ K('pw_kijk_mail') }}</h2>
+      <p>{{ K('pw_verstuurd') }}</p>
+    {% elif stap == 'geen_mail' %}
+      <h2>{{ K('pw_vergeten') }}</h2>
+      <p>{{ K('pw_geen_mail') }} <a href="mailto:info@nocturoapps.com">info@nocturoapps.com</a></p>
+    {% elif stap == 'nieuw' %}
+      <h2>{{ K('pw_kies') }}</h2>
+      <form method="post" action="/wachtwoord-nieuw">
+        <input type="hidden" name="t" value="{{ token }}">
+        <div class="veld"><label>{{ K('pw_nieuw') }}</label><input type="password" name="password" autocomplete="new-password" minlength="8" required></div>
+        <div class="veld"><label>{{ K('pw_nog_eens') }}</label><input type="password" name="password2" autocomplete="new-password" minlength="8" required></div>
+        <button class="knop groot" style="width:100%">{{ K('pw_opslaan') }}</button>
+      </form>
+    {% else %}
+      <h2>{{ K('pw_vergeten') }}</h2>
+      <p>{{ K('pw_verlopen') }}</p>
+      <a class="knop" href="/wachtwoord-vergeten">{{ K('pw_stuur') }}</a>
+    {% endif %}
+  </div>
+  <p class="of"><a href="/login">← {{ T('login') }}</a></p>
+</div>
+{% endblock %}
+{% block scripts %}<script>new NocturoUil(document.getElementById("grooteuil")).volg();</script>{% endblock %}
