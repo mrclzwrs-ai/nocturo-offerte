@@ -177,7 +177,7 @@ TEKSTEN.update({
                   "Esta app aún no está activada para tu cuenta. Alquílala en tu oficina."],
     # Video Ads
     "v_new": ["Nieuw filmpje", "New video", "Neues Video", "Nouvelle vidéo", "Nuevo vídeo"],
-    "v_left": ["Nog {n} van {m} filmpjes", "{n} of {m} videos left", "Noch {n} von {m} Videos", "Encore {n} vidéos sur {m}", "Quedan {n} de {m} vídeos"],
+    "v_left": ["Deze maand nog {n} van de {m} filmpjes over", "{n} of {m} videos left this month", "Diesen Monat noch {n} von {m} Videos übrig", "Encore {n} vidéos sur {m} ce mois-ci", "Te quedan {n} de {m} vídeos este mes"],
     "v_left_trial": ["Proef: nog {n} van {m} gratis filmpjes", "Trial: {n} of {m} free videos left", "Test: noch {n} von {m} Gratis-Videos", "Essai : encore {n} vidéos gratuites sur {m}", "Prueba: quedan {n} de {m} vídeos gratis"],
     "v_title": ["Naam van het product", "Product name", "Produktname", "Nom du produit", "Nombre del producto"],
     "v_price": ["Prijs (€)", "Price (€)", "Preis (€)", "Prix (€)", "Precio (€)"],
@@ -206,7 +206,7 @@ TEKSTEN.update({
     "wc_mislukt": ["De check is mislukt. Klopt het adres van je website?", "The check failed. Is your website address correct?",
                    "Die Prüfung ist fehlgeschlagen. Stimmt die Adresse?", "L'analyse a échoué. L'adresse est-elle correcte ?",
                    "La revisión ha fallado. ¿Es correcta la dirección?"],
-    "wc_over": ["Nog {n} van {m} checks", "{n} of {m} checks left", "Noch {n} von {m} Prüfungen", "Encore {n} analyses sur {m}", "Quedan {n} de {m} revisiones"],
+    "wc_over": ["Deze maand nog {n} van de {m} checks over", "{n} of {m} checks left this month", "Diesen Monat noch {n} von {m} Prüfungen übrig", "Encore {n} analyses sur {m} ce mois-ci", "Te quedan {n} de {m} revisiones este mes"],
     "wc_op": ["Je checks zijn op. Huur Video Ads voor 4 checks per maand.", "No checks left. Rent Video Ads for 4 checks a month.",
               "Keine Prüfungen mehr. Mieten Sie Video Ads für 4 Prüfungen pro Monat.", "Plus d'analyses. Louez Video Ads pour 4 analyses par mois.",
               "No te quedan revisiones. Alquila Video Ads para 4 al mes."],
