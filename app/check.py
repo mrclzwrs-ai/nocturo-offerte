@@ -191,7 +191,9 @@ def maak_rapport(site: dict, naam: str, lang: str) -> dict:
         "- De filmpjes zijn korte verticale reclamefilmpjes van één product of dienst, met foto's en een stem.\n"
         "- De ondernemer heeft deze website zelf ingevuld. Twijfel daar nooit aan en noem de naam van de winkel zoals die "
         "op de website staat. Begin de samenvatting direct met wat de winkel verkoopt en voor wie.\n"
-        "- Geef elk verbeterpunt een korte, duidelijke titel van 3 tot 7 woorden."
+        "- Geef elk verbeterpunt een korte, duidelijke titel van 3 tot 7 woorden.\n"
+        "- Elke uitleg moet op zichzelf te begrijpen zijn, ook zonder de titel: noem altijd eerst concreet waar het over gaat "
+        "(bijv. 'De belofte \"vandaag besteld, morgen in huis\" ...') en verwijs nooit met 'dit' of 'dat' naar iets wat er niet staat."
     )
     user = ("Website: " + site["start"] + "\n\nTekst van de website (per pagina):\n"
             + json.dumps(site["paginas"], ensure_ascii=False))
