@@ -50,6 +50,8 @@ MUZIEK = [
     {"key": "cozy-afternoon-2", "titel": "Cozy Afternoon II", "sfeer": "rustig_warm", "stijlen": ["licht", "luxe"]},
     {"key": "inner-peace-1", "titel": "Inner Peace", "sfeer": "spiritueel", "stijlen": []},
     {"key": "inner-peace-2", "titel": "Inner Peace II", "sfeer": "spiritueel", "stijlen": []},
+    {"key": "bansuri-meditation-1", "titel": "Bansuri Meditation", "sfeer": "spiritueel", "stijlen": []},
+    {"key": "bansuri-meditation-2", "titel": "Bansuri Meditation II", "sfeer": "spiritueel", "stijlen": []},
 ]
 MUZIEK_KEYS = {m["key"] for m in MUZIEK}
 
