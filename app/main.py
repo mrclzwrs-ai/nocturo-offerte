@@ -391,14 +391,16 @@ def video_page(request: Request, db=Depends(get_db)):
     VA.ververs(db, videos)
     over, limiet = VA.tegoed(db, c.id, actief)
     bezig = any(v.status in ("pending", "processing") for v in videos)
-    vooraf = {"titel": request.query_params.get("titel", "")[:120], "omschrijving": request.query_params.get("omschrijving", "")[:2000]}
+    qp = request.query_params
+    vooraf = {"titel": qp.get("titel", "")[:120], "omschrijving": qp.get("omschrijving", "")[:2000],
+              "winkel": qp.get("winkel", "")[:255] or c.name, "site": qp.get("site", "")[:255] or (c.website or "")}
     return render(request, "video.html", c, lang, videos=videos, actief=actief, over=over, limiet=limiet, vooraf=vooraf, muziek=VA.MUZIEK,
                   bezig=bezig, va_klaar=VA.klaar())
 
 
 @app.post("/video/nieuw")
 async def video_nieuw(request: Request, title: str = Form(...), price: str = Form("0"), description: str = Form(""),
-                      vlang: str = Form("nl"), stijl: str = Form("foto"), muziek: str = Form(""), fotos: list[UploadFile] = File(default=[]), db=Depends(get_db)):
+                      vlang: str = Form("nl"), stijl: str = Form("foto"), muziek: str = Form(""), winkel: str = Form(""), site: str = Form(""), fotos: list[UploadFile] = File(default=[]), db=Depends(get_db)):
     c, lang = company_ctx(request, db)
     if c.is_demo:
         return go("/aanmelden")
@@ -433,10 +435,11 @@ async def video_nieuw(request: Request, title: str = Form(...), price: str = For
     v = Video(company_id=c.id, title=title.strip()[:255], price=prijs, description=description.strip()[:2000],
               lang=vlang if vlang in LANGS else lang, media_tokens=",".join(tokens),
               stijl=stijl if stijl in VA.STIJLEN else VA.STANDAARD_STIJL,
-              muziek=muziek if muziek in VA.MUZIEK_KEYS else "")
+              muziek=muziek if muziek in VA.MUZIEK_KEYS else "",
+              winkel=(winkel.strip() or c.name)[:255], site=(site.strip() or c.website or "")[:255])
     db.add(v)
     db.commit()
-    VA.start_op_achtergrond(v.id, base_url(request), c.name, c.website or "")
+    VA.start_op_achtergrond(v.id, base_url(request), v.winkel, v.site)
     flash(request, K.k("v_started", lang))
     return go("/video")
 
@@ -461,7 +464,7 @@ def video_opnieuw(vid: int, request: Request, db=Depends(get_db)):
         return go("/video")
     v.status, v.error, v.render_id, v.voiceover, v.url, v.thumb = "pending", "", "", "", "", ""
     db.commit()
-    VA.start_op_achtergrond(v.id, base_url(request), c.name, c.website or "")
+    VA.start_op_achtergrond(v.id, base_url(request), v.winkel or c.name, v.site or c.website or "")
     flash(request, K.k("v_started", lang))
     return go("/video")
 

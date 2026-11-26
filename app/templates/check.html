@@ -65,7 +65,7 @@
       {% for f in w.filmpjes %}
         <div class="wc-film">
           <div><b>{{ f.titel }}</b><p>{{ f.omschrijving }}</p></div>
-          <a class="knop lijn" href="/video?titel={{ f.titel|urlencode }}&omschrijving={{ f.omschrijving|urlencode }}">{{ K('wc_maak') }}</a>
+          <a class="knop lijn" href="/video?titel={{ f.titel|urlencode }}&omschrijving={{ f.omschrijving|urlencode }}&winkel={{ (rapport.winkelnaam or '')|urlencode }}&site={{ laatste.url|urlencode }}">{{ K('wc_maak') }}</a>
         </div>
       {% endfor %}
     </div>

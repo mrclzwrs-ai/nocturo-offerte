@@ -255,6 +255,8 @@ TEKSTEN.update({
                       "Demnächst in Ihrem Büro: Ihre eigene Website prüfen lassen, mit Verbesserungen und einem Verkaufsplan für Privatkunden.",
                       "Bientôt dans votre bureau : faire vérifier votre site, avec des pistes d'amélioration et un plan de vente pour particuliers.",
                       "Pronto en tu oficina: revisar tu propia web, con mejoras y un plan de ventas para particulares."],
+    "v_shop": ["Naam van de winkel", "Shop name", "Name des Geschäfts", "Nom de la boutique", "Nombre de la tienda"],
+    "v_site": ["Website", "Website", "Website", "Site web", "Web"],
     "v_music": ["Muziek", "Music", "Musik", "Musique", "Música"],
     "v_music_auto": ["Laat het kantoor kiezen", "Let the office choose", "Das Büro wählen lassen", "Laisser le bureau choisir", "Que elija la oficina"],
     "v_music_auto_uitleg": ["Een muziekje dat past bij de stijl, steeds een ander.", "Music that fits the style, a different one each time.",

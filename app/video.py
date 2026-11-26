@@ -1,3 +1,4 @@
+import re
 """Nocturo Video Ads: dezelfde reclamefilmpjes als ShopReels, voor winkels zonder Shopify.
 
 De klant vult een product in (naam, prijs, omschrijving, 1 tot 4 foto's). Claude schrijft
@@ -157,7 +158,7 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
                     "product_image.source": f1, "image_2.source": f2, "image_3.source": f3, "image_4.source": f4,
                     "voiceover_audio.source": v.voiceover,
                     "voiceover_audio.provider": f"elevenlabs model_id=eleven_turbo_v2_5 voice_id={VOICE_IDS[lang]} language_code={lang}",
-                    "website.text": website or shop_name, "cta.text": f"{CTA[lang]}{shop_name}",
+                    "website.text": re.sub(r"^https?://(www\.)?", "", (website or shop_name)).rstrip("/"), "cta.text": f"{CTA[lang]}{shop_name}",
                     "music.source": f"{base_url}/static/muziek/{kies_muziek(getattr(v, 'muziek', '') or '', getattr(v, 'stijl', '') or STANDAARD_STIJL)}.mp3"}})
             if r.status_code >= 300:
                 raise RuntimeError(f"Creatomate {r.status_code}: {r.text[:200]}")

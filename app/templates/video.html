@@ -17,6 +17,10 @@
       <div class="veld"><label>{{ K('v_title') }}</label><input name="title" required maxlength="120" value="{{ vooraf.titel if vooraf }}"></div>
       <div class="veld"><label>{{ K('v_price') }}</label><input name="price" inputmode="decimal"></div>
     </div>
+    <div class="rij2">
+      <div class="veld"><label>{{ K('v_shop') }}</label><input name="winkel" maxlength="255" value="{{ vooraf.winkel if vooraf }}"></div>
+      <div class="veld"><label>{{ K('v_site') }}</label><input name="site" maxlength="255" value="{{ vooraf.site if vooraf }}"></div>
+    </div>
     <div class="veld"><label>{{ K('v_desc') }}</label><textarea name="description" rows="3" maxlength="2000">{{ vooraf.omschrijving if vooraf }}</textarea></div>
     <div class="rij2">
       <div class="veld"><label>{{ K('v_photos') }}</label><input type="file" name="fotos" accept="image/*" multiple required></div>

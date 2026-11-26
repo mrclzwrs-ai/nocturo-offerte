@@ -139,6 +139,7 @@ TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
+            "winkelnaam": {"type": "string", "description": "naam van de winkel zoals op de website"},
             "samenvatting": {"type": "string", "description": "2-3 zinnen: wat verkoopt deze zaak en voor wie"},
             "sterke_punten": {"type": "array", "items": {"type": "string"}, "description": "2-4 dingen die al goed zijn"},
             "verbeterpunten": {
@@ -172,7 +173,7 @@ TOOL = {
                 "description": "plan voor 4 weken, per week 2-3 filmpjes"},
             "verwachting": {"type": "string", "description": "eerlijk, 2-3 zinnen: hoe lang het meestal duurt voordat je gezien wordt, zonder beloftes of cijfers over omzet"},
         },
-        "required": ["samenvatting", "sterke_punten", "verbeterpunten", "kanalen", "producten_eerst", "weken", "verwachting"],
+        "required": ["winkelnaam", "samenvatting", "sterke_punten", "verbeterpunten", "kanalen", "producten_eerst", "weken", "verwachting"],
     },
 }
 
