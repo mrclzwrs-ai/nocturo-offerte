@@ -153,7 +153,7 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
             r = requests.post("https://api.creatomate.com/v1/renders", timeout=60, headers={
                 "Authorization": f"Bearer {os.environ['CREATOMATE_API_KEY']}", "Content-Type": "application/json"},
                 json={"template_id": template_id, "modifications": {
-                    "title.text": v.title, "price.text": prijs_tekst(v.price),
+                    "title.text": v.title, "price.text": prijs_tekst(v.price), "price.visible": bool(v.price),
                     "product_image.source": f1, "image_2.source": f2, "image_3.source": f3, "image_4.source": f4,
                     "voiceover_audio.source": v.voiceover,
                     "voiceover_audio.provider": f"elevenlabs model_id=eleven_turbo_v2_5 voice_id={VOICE_IDS[lang]} language_code={lang}",
