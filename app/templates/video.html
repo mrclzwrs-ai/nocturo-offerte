@@ -32,6 +32,16 @@
       </div>
       <div class="hint">{{ K('v_length_hint') }}</div>
     </div>
+    <div class="veld"><label>{{ K('v_music') }}</label>
+      <div class="muzieklijst">
+        <label class="muz"><input type="radio" name="muziek" value="" checked><span><b>{{ K('v_music_auto') }}</b><small>{{ K('v_music_auto_uitleg') }}</small></span></label>
+        {% for m in muziek %}
+        <label class="muz"><input type="radio" name="muziek" value="{{ m.key }}">
+          <span><b>{{ m.titel }}</b><small>{{ K('mz_' ~ m.sfeer) }}</small></span>
+          <button type="button" class="speel" data-src="/static/muziek/{{ m.key }}.mp3" aria-label="{{ K('v_music_play') }}">▶</button></label>
+        {% endfor %}
+      </div>
+    </div>
     <button class="knop groot">{{ K('v_make') }}</button>
   </form>
   {% else %}

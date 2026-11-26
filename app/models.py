@@ -201,6 +201,7 @@ class Video(Base):
     description = Column(Text, default="")
     lang = Column(String(5), default="nl")
     stijl = Column(String(20), default="foto")    # foto / luxe / licht
+    muziek = Column(String(60), default="")       # leeg = het kantoor kiest
     media_tokens = Column(Text, default="")      # komma-gescheiden
     voiceover = Column(Text, default="")
     status = Column(String(20), default="pending")  # pending / processing / completed / failed
@@ -232,10 +233,13 @@ def init_db():
             if engine.dialect.name == "postgresql":
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS stijl VARCHAR(20) DEFAULT 'foto'"))
                 con.execute(_sql("ALTER TABLE companies ADD COLUMN IF NOT EXISTS doelgroep VARCHAR(10) DEFAULT ''"))
+                con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS muziek VARCHAR(60) DEFAULT ''"))
             else:
                 kols = [r[1] for r in con.execute(_sql("PRAGMA table_info(nocturo_video)"))]
                 if "stijl" not in kols:
                     con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN stijl VARCHAR(20) DEFAULT 'foto'"))
+                if "muziek" not in kols:
+                    con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN muziek VARCHAR(60) DEFAULT ''"))
                 kols = [r[1] for r in con.execute(_sql("PRAGMA table_info(companies)"))]
                 if "doelgroep" not in kols:
                     con.execute(_sql("ALTER TABLE companies ADD COLUMN doelgroep VARCHAR(10) DEFAULT ''"))

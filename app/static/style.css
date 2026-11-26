@@ -249,3 +249,11 @@ svg.uil{display:block;overflow:visible}
 .wc-film p{margin:4px 0 0;color:var(--grijs);font-size:14px;line-height:1.5}
 .wc-film .knop{white-space:nowrap}
 @media(max-width:700px){.wc-film{flex-direction:column;align-items:stretch}}
+
+.muzieklijst{display:flex;flex-direction:column;gap:8px}
+.muz{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--lijn);border-radius:10px;cursor:pointer}
+.muz input{accent-color:var(--turq);width:20px;height:20px;flex:none}
+.muz span{display:flex;flex-direction:column;flex:1}
+.muz small{color:var(--grijs);font-size:13px}
+.muz:has(input:checked){border-color:var(--turq)}
+.speel{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--turq);background:transparent;color:var(--turq);font-size:16px;cursor:pointer}

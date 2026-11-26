@@ -38,8 +38,22 @@ NOODTEKST = {
     "fr": "{title}. Et le tout à un prix imbattable. Commandez chez nous. Ne le manquez pas !",
     "es": "{title}. Y todo a un precio genial. Pídelo ya con nosotros. ¡No te lo pierdas!",
 }
-MUSIC = ["https://cdn.creatomate.com/demo/music1.mp3", "https://cdn.creatomate.com/demo/music2.mp3",
-         "https://cdn.creatomate.com/demo/music3.mp3"]
+# Eigen achtergrondmuziek (gemaakt met Suno Pro), staat in app/static/muziek/.
+# sfeer = sleutel voor de tekst in kantoor.py, stijlen = bij welke stijl het kantoor hem zelf mag kiezen.
+MUZIEK = [
+    {"key": "ascent-in-gold", "titel": "Ascent in Gold", "sfeer": "stoer_duur", "stijlen": ["luxe", "foto"]},
+    {"key": "cool-and-confident-1", "titel": "Cool and Confident", "sfeer": "stoer_energiek", "stijlen": ["foto"]},
+    {"key": "cool-and-confident-2", "titel": "Cool and Confident II", "sfeer": "stoer_energiek", "stijlen": ["foto", "licht"]},
+]
+MUZIEK_KEYS = {m["key"] for m in MUZIEK}
+
+
+def kies_muziek(gekozen: str, stijl: str) -> str:
+    """Sleutel van het muziekje: de keuze van de klant, anders een passend muziekje bij de stijl."""
+    if gekozen in MUZIEK_KEYS:
+        return gekozen
+    passend = [m["key"] for m in MUZIEK if stijl in m["stijlen"]] or [m["key"] for m in MUZIEK]
+    return random.choice(passend)
 
 
 def klaar() -> bool:
@@ -136,7 +150,7 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
                     "voiceover_audio.source": v.voiceover,
                     "voiceover_audio.provider": f"elevenlabs model_id=eleven_turbo_v2_5 voice_id={VOICE_IDS[lang]} language_code={lang}",
                     "website.text": website or shop_name, "cta.text": f"{CTA[lang]}{shop_name}",
-                    "music.source": random.choice(MUSIC)}})
+                    "music.source": f"{base_url}/static/muziek/{kies_muziek(getattr(v, 'muziek', '') or '', getattr(v, 'stijl', '') or STANDAARD_STIJL)}.mp3"}})
             if r.status_code >= 300:
                 raise RuntimeError(f"Creatomate {r.status_code}: {r.text[:200]}")
             data = r.json()
