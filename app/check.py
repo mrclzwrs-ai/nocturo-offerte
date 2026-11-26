@@ -144,7 +144,7 @@ TOOL = {
             "verbeterpunten": {
                 "type": "array",
                 "items": {"type": "object", "properties": {
-                    "titel": {"type": "string"},
+                    "titel": {"type": "string", "description": "korte titel, 3-7 woorden, nooit leeg"},
                     "uitleg": {"type": "string", "description": "wat er beter kan en hoe, 1-3 zinnen, gewone taal"},
                     "belang": {"type": "string", "enum": ["hoog", "middel", "laag"]}},
                     "required": ["titel", "uitleg", "belang"]},
@@ -188,9 +188,13 @@ def maak_rapport(site: dict, naam: str, lang: str) -> dict:
         "reviews of eigenschappen. Weet je iets niet zeker (bijv. omdat je de foto's niet kunt zien), zeg dat dan eerlijk.\n"
         "- Verbeterpunten moeten concreet en uitvoerbaar zijn, de belangrijkste eerst.\n"
         "- Beloof nooit omzet, aantallen klanten of resultaten.\n"
-        "- De filmpjes zijn korte verticale reclamefilmpjes van één product of dienst, met foto's en een stem."
+        "- De filmpjes zijn korte verticale reclamefilmpjes van één product of dienst, met foto's en een stem.\n"
+        "- De ondernemer heeft deze website zelf ingevuld. Twijfel daar nooit aan en noem de naam van de winkel zoals die "
+        "op de website staat. Begin de samenvatting direct met wat de winkel verkoopt en voor wie.\n"
+        "- Geef elk verbeterpunt een korte, duidelijke titel van 3 tot 7 woorden."
     )
-    user = "Bedrijfsnaam: " + naam + "\n\nTekst van de website (per pagina):\n" + json.dumps(site["paginas"], ensure_ascii=False)
+    user = ("Website: " + site["start"] + "\n\nTekst van de website (per pagina):\n"
+            + json.dumps(site["paginas"], ensure_ascii=False))
     return _call_tool(system, user, TOOL, max_tokens=6000)
 
 

@@ -39,7 +39,7 @@
   {% for p in rapport.verbeterpunten %}
     <div class="wc-punt b-{{ p.belang }}">
       <span class="mono wc-belang">{{ K('wc_belang_' ~ p.belang) }}</span>
-      <b>{{ p.titel }}</b>
+      {% if p.titel %}<b>{{ p.titel }}</b>{% endif %}
       <p>{{ p.uitleg }}</p>
     </div>
   {% endfor %}
