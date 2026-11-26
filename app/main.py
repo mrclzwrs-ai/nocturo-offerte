@@ -45,10 +45,37 @@ def _startup():
     init_db()
     with SessionLocal() as db:
         ensure_demo(db)
+        _vrienden_accounts(db)
     try:
         WC.herstel_na_herstart()
     except Exception as ex:
         print("Checks herstarten mislukt:", ex)
+
+
+# Vaste gratis vriendenaccounts die Marcel via Claude laat aanmaken.
+# Alleen aanmaken als ze nog niet bestaan; bestaande accounts blijven ongemoeid.
+VRIENDEN = [
+    {"email": "robin@nocturoapps.com", "name": "Robin Heutink",
+     "pw_hash": "scrypt$2UGgitZQyg1pf2/kVjvyBw==$7+c/as14ID1xl4a4Qjj7xHyDK7+jVtvKIv5GzKJLwj3RjwDQr6dnbh1niMJjs2OdK70fMQQhRGIRm2uRzWxgWw=="},
+]
+
+
+def _vrienden_accounts(db):
+    try:
+        for v in VRIENDEN:
+            c = db.query(Company).filter(Company.email == v["email"]).first()
+            if c:
+                continue
+            c = Company(email=v["email"], password_hash=v["pw_hash"], name=v["name"], lang="nl",
+                        country="Nederland")
+            db.add(c)
+            db.flush()
+            db.add(AppSub(company_id=c.id, app=K.VRIEND, status="actief"))
+            db.commit()
+            print("Vriendenaccount aangemaakt:", v["email"])
+    except Exception as ex:
+        db.rollback()
+        print("Vriendenaccount aanmaken mislukt:", ex)
 
 
 def get_db():
