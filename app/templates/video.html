@@ -67,7 +67,7 @@
       {% endif %}
       <h3 style="font-size:17px">{{ v.title }}</h3>
       <div class="mono hint">{{ DATE(v.created_at) }} · {{ v.lang|upper }}{% if v.stijl and v.created_at and v.created_at.strftime('%Y-%m-%d %H:%M') > '2026-11-25 16:41' %} · {{ K('st_' ~ v.stijl) }}{% endif %}</div>
-      {% if v.status == 'completed' %}<a class="knop" href="{{ v.url }}" target="_blank" rel="noopener">{{ K('v_watch') }}</a>
+      {% if v.status == 'completed' %}<a class="knop" href="/video/{{ v.id }}/download">{{ K('v_download') }}</a> <a class="knop lijn" href="{{ v.url }}" target="_blank" rel="noopener">{{ K('v_watch') }}</a>
       {% elif v.status == 'failed' %}<span class="kt-noot" style="color:var(--rood)">{{ K('v_failed') }}</span>
         <form method="post" action="/video/{{ v.id }}/opnieuw"><button class="knop">{{ K('v_retry') }}</button></form>
       {% else %}<span class="kt-noot">{{ K('v_busy') }}</span>{% endif %}

@@ -560,6 +560,25 @@ async def video_nieuw(request: Request, title: str = Form(...), price: str = For
 
 
 
+@app.get("/video/{vid}/download")
+def video_download(vid: int, request: Request, db=Depends(get_db)):
+    """Het filmpje als bestand downloaden (de CDN-link opent alleen in de browser)."""
+    import re
+    import requests as rq
+    from fastapi.responses import StreamingResponse
+    c, lang = company_ctx(request, db)
+    v = db.get(Video, vid)
+    if not v or v.company_id != c.id or v.status != "completed" or not v.url:
+        return go("/video")
+    r = rq.get(v.url, stream=True, timeout=60)
+    if r.status_code != 200:
+        return go(v.url)
+    naam = re.sub(r"[^A-Za-z0-9_-]+", "-", (v.title or "filmpje")).strip("-")[:60] or "filmpje"
+    headers = {"Content-Disposition": f'attachment; filename="{naam}.mp4"'}
+    if r.headers.get("Content-Length"):
+        headers["Content-Length"] = r.headers["Content-Length"]
+    return StreamingResponse(r.iter_content(64 * 1024), media_type="video/mp4", headers=headers)
+
 @app.post("/video/{vid}/opnieuw")
 def video_opnieuw(vid: int, request: Request, db=Depends(get_db)):
     """Een mislukt filmpje met hetzelfde product en dezelfde foto's opnieuw laten maken."""
