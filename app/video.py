@@ -46,6 +46,7 @@ MUZIEK = [
     {"key": "cool-and-confident-2", "titel": "Cool and Confident II", "sfeer": "stoer_energiek", "stijlen": ["foto"]},
     {"key": "fresh-start-1", "titel": "Fresh Start", "sfeer": "fris_vrolijk", "stijlen": ["licht"]},
     {"key": "fresh-start-2", "titel": "Fresh Start II", "sfeer": "fris_vrolijk", "stijlen": ["licht", "foto"]},
+    {"key": "cozy-afternoon-1", "titel": "Cozy Afternoon", "sfeer": "rustig_warm", "stijlen": ["licht", "luxe"]},
 ]
 MUZIEK_KEYS = {m["key"] for m in MUZIEK}
 
