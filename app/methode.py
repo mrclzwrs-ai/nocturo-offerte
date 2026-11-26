@@ -19,9 +19,23 @@ De negen stappen, vertaald naar online:
 Houding: praat mensen niet naar de mond, maar denk en leef echt mee. Eerlijk, warm, geen gouden bergen beloven."""
 
 
+# Wat we in de praktijk geleerd hebben. Marcel test, Claude zet het hier bij.
+# Elke les met hoe zeker het is; "nog uitzoeken" betekent: aanwijzing, nog geen bewijs.
+LESSEN = [
+    "Een dier met een echte rol in het verhaal houdt kijkers vast (kattenfilmpje 'En de enige die langskomt...', "
+    "lege kaarsenwinkel waar alleen een kat langskomt: 5.000 weergaven op TikTok, nov 2026). Het dier moet het verhaal "
+    "vertellen, niet alleen schattig in beeld zitten. Nog uitzoeken: werken alle dieren, of vooral katten?",
+]
+
+
+def lessen_tekst() -> str:
+    return "WAT WE IN DE PRAKTIJK GELEERD HEBBEN (gebruik dit waar het past, verzin er niets bij):\n" + \
+        "\n".join("- " + l for l in LESSEN)
+
+
 def met_methode(system: str, focus: str = "") -> str:
     """Zet de methode (en waar deze app vooral op let) onder een bestaande instructie."""
-    tekst = system.rstrip() + "\n\n" + METHODE
+    tekst = system.rstrip() + "\n\n" + METHODE + "\n\n" + lessen_tekst()
     if focus:
         tekst += "\nVoor deze taak let je vooral op: " + focus.strip()
     return tekst
