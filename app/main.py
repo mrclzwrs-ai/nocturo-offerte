@@ -44,6 +44,10 @@ def _startup():
     init_db()
     with SessionLocal() as db:
         ensure_demo(db)
+    try:
+        WC.herstel_na_herstart()
+    except Exception as ex:
+        print("Checks herstarten mislukt:", ex)
 
 
 def get_db():
@@ -473,9 +477,31 @@ def check_tegoed(db, c) -> tuple[int, int]:
     return max(0, WC.PROEF - q.count()), WC.PROEF
 
 
+def _vastgelopen_checks_opruimen(db, company_id: int):
+    """Een check die na 5 minuten nog loopt, is afgebroken (bijv. door een herstart van de server)."""
+    grens = datetime.utcnow() - timedelta(minutes=5)
+    oud = db.query(WebsiteCheck).filter(WebsiteCheck.company_id == company_id,
+                                       WebsiteCheck.status.in_(["pending", "processing"]),
+                                       WebsiteCheck.created_at < grens).all()
+    for x in oud:
+        x.status, x.error = "failed", "afgebroken"
+    if oud:
+        db.commit()
+
+
+@app.get("/check/status")
+def check_status(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    _vastgelopen_checks_opruimen(db, c.id)
+    bezig = db.query(WebsiteCheck).filter(WebsiteCheck.company_id == c.id,
+                                          WebsiteCheck.status.in_(["pending", "processing"])).count()
+    return JSONResponse({"bezig": bool(bezig)})
+
+
 @app.get("/check", response_class=HTMLResponse)
 def check_page(request: Request, db=Depends(get_db)):
     c, lang = company_ctx(request, db)
+    _vastgelopen_checks_opruimen(db, c.id)
     checks = db.query(WebsiteCheck).filter(WebsiteCheck.company_id == c.id).order_by(WebsiteCheck.created_at.desc()).limit(10).all()
     laatste = next((x for x in checks if x.status == "done"), None)
     rapport = json.loads(laatste.result_json) if laatste and laatste.result_json else None

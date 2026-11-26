@@ -215,5 +215,17 @@ def _start(check_id: int, naam: str, lang: str):
             db.commit()
 
 
+def herstel_na_herstart():
+    """Bij het opstarten: checks die nog liepen toen de server stopte, opnieuw starten."""
+    from .models import Company
+    with SessionLocal() as db:
+        lopend = db.query(WebsiteCheck).filter(WebsiteCheck.status.in_(["pending", "processing"])).all()
+        for x in lopend:
+            x.status = "pending"
+            db.commit()
+            comp = db.get(Company, x.company_id)
+            start_op_achtergrond(x.id, comp.name if comp else "", (comp.lang if comp else "nl") or "nl")
+
+
 def start_op_achtergrond(check_id: int, naam: str, lang: str):
     threading.Thread(target=_start, args=(check_id, naam, lang), daemon=True).start()

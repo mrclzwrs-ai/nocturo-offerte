@@ -84,4 +84,12 @@
 </section>
 {% endif %}
 {% endblock %}
-{% block scripts %}{% if bezig %}<script>setTimeout(function(){location.reload()},8000);</script>{% endif %}{% endblock %}
+{% block scripts %}{% if bezig %}<script>
+(function kijk(){
+  setTimeout(function(){
+    fetch('/check/status', {credentials: 'same-origin'}).then(function(r){ return r.json(); })
+      .then(function(d){ if (d.bezig) { kijk(); } else { location.reload(); } })
+      .catch(function(){ kijk(); });
+  }, 5000);
+})();
+</script>{% endif %}{% endblock %}
