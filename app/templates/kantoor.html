@@ -84,7 +84,9 @@
   </section>
   <section class="paneel">
     <h2>{{ K('my_sub') }}</h2>
-    {% if vriend %}
+    {% if beheerder %}
+      <div class="kt-gegevens"><span>{{ K('admin_acc') }}</span><b class="mono">{{ K('free') }}</b></div>
+    {% elif vriend %}
       <div class="kt-gegevens"><span>{{ K('friend') }}</span><b class="mono">{{ K('free') }}</b></div>
     {% elif cr and cr.status == 'actief' %}
       <div class="kt-gegevens"><span>{{ K('control_title') }}</span><b class="mono">{{ MONEY(prijs_cr) }}</b></div>
@@ -96,7 +98,7 @@
       <p class="hint">{{ K('nothing_yet') }}</p>
     {% endif %}
     <div class="kt-gegevens kt-totaal"><span>{{ K('total') }}</span><b class="mono oranjetekst">{{ MONEY(totaal) }}</b></div>
-    <p class="hint">{{ K('friend_note') if vriend else K('pay_note') }}</p>
+    {% if vriend and not beheerder %}<p class="hint">{{ K('friend_note') }}</p>{% endif %}
   </section>
 </div>
 {% endblock %}

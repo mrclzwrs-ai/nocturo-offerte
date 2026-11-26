@@ -117,6 +117,7 @@ TEKSTEN = {
     "my_account": ["Mijn account", "My account", "Mein Konto", "Mon compte", "Mi cuenta"],
     "my_sub": ["Mijn abonnement", "My subscription", "Mein Abo", "Mon abonnement", "Mi suscripción"],
     "company": ["Zaak", "Business", "Firma", "Entreprise", "Empresa"],
+    "admin_acc": ["Beheerder: alle apps", "Administrator: all apps", "Administrator: alle Apps", "Administrateur : toutes les applis", "Administrador: todas las apps"],
     "total": ["Totaal per maand", "Total per month", "Gesamt pro Monat", "Total par mois", "Total al mes"],
     "nothing_yet": ["Nog geen gehuurde apps.", "No rented apps yet.", "Noch keine gemieteten Apps.",
                     "Pas encore d'applis louées.", "Aún no hay apps alquiladas."],

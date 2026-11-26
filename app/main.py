@@ -299,11 +299,14 @@ def kantoor(request: Request, db=Depends(get_db)):
         if (cr_actief or is_admin_of(c)) and x["key"] != "pling" and x["status"] not in ("actief", "proef"):
             x["status"] = "actief"
     actief = sum(1 for x in kaarten if x["status"] in ("actief", "proef"))
-    gehuurd = [x for x in kaarten if x["status"] == "actief"]
+    # Het abonnement rekent met wat echt gehuurd is, niet met wat de beheerder/vriend gratis aan heeft staan.
+    beheerder = is_admin_of(c)
+    gehuurd = [x for x in K.kaarten(c, subs) if x["status"] == "actief"]
+    totaal = 0.0 if (beheerder or vriend) else K.maandbedrag(c, subs)
     cr = subs.get("controlroom")
     return render(request, "kantoor.html", c, lang, kaarten=kaarten, actief=actief, gehuurd=gehuurd,
-                  totaal=K.maandbedrag(c, subs), cr=cr, prijs_cr=K.PRIJS_CONTROLROOM, prijs_los=K.PRIJS_LOS,
-                  dagen=c.trial_days_left(), vriend=vriend)
+                  totaal=totaal, cr=cr, prijs_cr=K.PRIJS_CONTROLROOM, prijs_los=K.PRIJS_LOS,
+                  dagen=c.trial_days_left(), vriend=vriend, beheerder=beheerder)
 
 
 def _meld_aan_marcel(company, app_key: str):
