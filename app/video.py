@@ -43,7 +43,9 @@ NOODTEKST = {
 MUZIEK = [
     {"key": "ascent-in-gold", "titel": "Ascent in Gold", "sfeer": "stoer_duur", "stijlen": ["luxe", "foto"]},
     {"key": "cool-and-confident-1", "titel": "Cool and Confident", "sfeer": "stoer_energiek", "stijlen": ["foto"]},
-    {"key": "cool-and-confident-2", "titel": "Cool and Confident II", "sfeer": "stoer_energiek", "stijlen": ["foto", "licht"]},
+    {"key": "cool-and-confident-2", "titel": "Cool and Confident II", "sfeer": "stoer_energiek", "stijlen": ["foto"]},
+    {"key": "fresh-start-1", "titel": "Fresh Start", "sfeer": "fris_vrolijk", "stijlen": ["licht"]},
+    {"key": "fresh-start-2", "titel": "Fresh Start II", "sfeer": "fris_vrolijk", "stijlen": ["licht", "foto"]},
 ]
 MUZIEK_KEYS = {m["key"] for m in MUZIEK}
 
