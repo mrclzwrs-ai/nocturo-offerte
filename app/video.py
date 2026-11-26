@@ -118,9 +118,12 @@ Regels:
 4. Eindig met een korte oproep om te bestellen, alsof de winkel zelf praat. Noem NOOIT de naam van de winkel of het webadres, maar zeg 'bij ons' in de taal van de tekst. Zeg nooit 'link in bio'.
 5. Sluit af met de slotkreet hierboven; is de tekst niet Nederlands, vertaal de kreet dan naar een natuurlijke kreet in die taal.
 Geef alleen de tekst terug."""
+    from .methode import met_methode
+    systeem = met_methode("Je schrijft korte voice-overteksten voor reclamefilmpjes. De regels in de opdracht gaan altijd voor.",
+                          "open met een herkenbare situatie of vraag die de kijker raakt (de eerste seconden zijn de voordeur), vertaal eigenschappen naar wat ze de kijker opleveren, en eindig met één duidelijke oproep.")
     client = _client()
     for poging in (1, 2):
-        msg = client.messages.create(model=MODEL, max_tokens=2000,
+        msg = client.messages.create(model=MODEL, max_tokens=2000, system=systeem,
                                      messages=[{"role": "user", "content": prompt}])
         tekst = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text").strip()
         if tekst:

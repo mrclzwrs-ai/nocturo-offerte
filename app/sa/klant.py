@@ -105,7 +105,9 @@ def schrijf_mail(lead, profiel, ai=None):
 
 def _vraag(prompt):
     from ..ai import MODEL, _client
-    msg = _client().messages.create(model=MODEL, max_tokens=2000, system=SYSTEEM,
+    from ..methode import met_methode
+    systeem = met_methode(SYSTEEM, "stap 3 binnenkomen (een warme, menselijke eerste zin over hun winkel), stap 4 wakker maken (één herkenbare situatie of vraag) en stap 8 afsluiten: eindig waar het kan met een lichte keuze tussen twee ja's (bijvoorbeeld 'zal ik een voorbeeld sturen, of bel ik even?'). Geen druk. De JSON-regels hierboven blijven voorgaan.")
+    msg = _client().messages.create(model=MODEL, max_tokens=2000, system=systeem,
                                     messages=[{"role": "user", "content": prompt}])
     return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
 

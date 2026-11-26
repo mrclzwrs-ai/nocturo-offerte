@@ -138,6 +138,8 @@ def make_quote(company, products, request_text: str, quote_lang: str) -> dict:
         "PRIJSLIJST (JSON):\n" + json.dumps(pricelist, ensure_ascii=False) +
         "\n\nWENS VAN DE KLANT:\n" + request_text.strip()
     )
+    from .methode import met_methode
+    system = met_methode(system, "in de intro spiegel je de wens van de klant terug in één zin (stap 5), in de omschrijvingen noem je kort wat het de klant oplevert (stap 6), en in de afsluiting geef je één makkelijke volgende stap, waar passend als keuze tussen twee ja's (stap 8), plus dat de klant altijd mag bellen of mailen met vragen (stap 9). De prijsregels hierboven blijven altijd voorgaan; verzin nooit prijzen, kortingen of beloftes.")
     data = _call_tool(system, user, QUOTE_TOOL)
     return _clean_quote(data, products, company.default_vat)
 

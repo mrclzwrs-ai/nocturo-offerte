@@ -198,6 +198,8 @@ def maak_rapport(site: dict, naam: str, lang: str) -> dict:
     )
     user = ("Website: " + site["start"] + "\n\nTekst van de website (per pagina):\n"
             + json.dumps(site["paginas"], ensure_ascii=False))
+    from .methode import met_methode
+    system = met_methode(system, "bekijk de website stap voor stap met deze methode: komt een bezoeker goed binnen (eerste indruk), wordt zijn behoefte wakker gemaakt, wordt het nut duidelijk in voordelen, worden de bekende bezwaren weggenomen (prijs, vertrouwen, gedoe), is er een duidelijke volgende stap of keuze, en is er nazorg. Baseer je verbeterpunten daarop, in gewone taal, zonder de stapnummers te noemen. De filmpjes in het plan openen met een herkenbare situatie of vraag.")
     return _call_tool(system, user, TOOL, max_tokens=6000)
 
 
