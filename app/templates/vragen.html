@@ -3,6 +3,12 @@
 {% block content %}
 <p><a href="/kantoor">{{ K('back_office') }}</a></p>
 <div class="kt-kop"><div><h2>Nocturo</h2><h1>{{ K('faq_titel') }}</h1></div></div>
+<section class="paneel faq handleiding" id="zo-werkt-het">
+  <h2>{{ hl.titel }}</h2>
+  {% for t, h in hl.secties %}
+  <details{% if loop.first %} open{% endif %}><summary>{{ t }}</summary><div class="hl-tekst">{{ h|safe }}</div></details>
+  {% endfor %}
+</section>
 <section class="paneel faq">
   {% for v in vragen %}
   <details><summary>{{ v[0] }}</summary><p>{{ v[1] }}</p></details>

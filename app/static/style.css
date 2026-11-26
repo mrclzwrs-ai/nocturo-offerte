@@ -264,3 +264,11 @@ svg.uil{display:block;overflow:visible}
 .faq summary::before{content:"+";display:inline-block;width:24px;color:var(--turq)}
 .faq details[open] summary::before{content:"–"}
 .faq details p{margin:0 0 14px 24px;color:var(--grijs);line-height:1.6}
+.handleiding{margin-bottom:22px}
+.handleiding h2{margin:4px 0 6px}
+.hl-tekst{padding:0 0 14px 24px;line-height:1.6}
+.hl-tekst ol,.hl-tekst ul{padding-left:20px;margin:6px 0}
+.hl-tekst li{margin:4px 0}
+.hl-tekst .tip{opacity:.8;font-style:italic}
+.hl-tekst blockquote{margin:8px 0;padding:10px 14px;border-left:3px solid var(--turq);background:rgba(127,127,127,.08);border-radius:6px;user-select:all}
+.hl-tekst a{word-break:break-all}
