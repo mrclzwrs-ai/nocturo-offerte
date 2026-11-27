@@ -48,6 +48,14 @@
         <label class="muz" {% if over < echt_kost %}style="opacity:.5"{% endif %}><input type="radio" name="soort" value="echt" {{ 'disabled' if over < echt_kost }}><span><b>{{ K('v_echt') }}</b><small>{{ K('v_echt_uitleg', n=echt_kost) }}</small>{% if over < echt_kost %}<small>{{ K('v_echt_te_weinig', n=echt_kost) }}</small>{% endif %}</span></label>
       </div>
     </div>
+    <div class="veld" id="bewegingveld" style="display:none"><label>{{ K('v_beweging') }}</label>
+      <textarea name="beweging" rows="2" maxlength="600"></textarea>
+      <div class="hint">{{ K('v_beweging_uitleg') }}</div>
+    </div>
+    <script>
+    (function(){var v=document.getElementById('bewegingveld');document.querySelectorAll('input[name=soort]').forEach(function(r){
+      r.addEventListener('change',function(){v.style.display=(document.querySelector('input[name=soort]:checked').value==='echt')?'':'none';});});})();
+    </script>
     <div class="veld"><label>{{ K('v_style') }}</label>
       <div class="stijlkeus">
         {% for key in ['foto', 'luxe', 'licht'] %}

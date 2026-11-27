@@ -171,7 +171,7 @@ Geef alleen de tekst terug."""
     return NOODTEKST.get(lang, NOODTEKST["nl"]).format(title=title), False
 
 
-def beweging_prompts(title: str, description: str, fotos: list) -> list:
+def beweging_prompts(title: str, description: str, fotos: list, wens: str = "") -> list:
     """Echte video: Claude bekijkt elke foto en bedenkt welke beweging bij dit product past.
     fotos = lijst van (mime, bytes). Geeft per foto een Engelse opdracht voor Kling; bij een fout de vaste opdracht."""
     import base64
@@ -187,11 +187,13 @@ def beweging_prompts(title: str, description: str, fotos: list) -> list:
 Product: {title}
 Description: {description}
 
+{"The shop owner described the motion they want (any language): " + wens + chr(10) + "Follow this wish as closely as possible for this photo; translate it into a clear English instruction. Only if the wish clearly does not fit this photo, choose motion in the same spirit." + chr(10) if wens else ""}
 Write ONE short English instruction (max 60 words) describing natural, eye-catching motion that fits THIS product in THIS photo.
 Think of what would really move: steam rising from a hot drink, liquid gently shimmering or pouring, spices or crumbs softly falling,
 fabric moving in a light breeze, water droplets, sparkles on jewellery, leaves swaying, light sweeping over metal or glass.
 Rules: the product itself must stay exactly the same shape, colour, text and logo. The camera stays in front of the product
-and moves only slowly (gentle push-in or slight slide). No rotating or turning the product, no people, no hands, no text.
+and moves only slowly (gentle push-in or slight slide). No rotating or turning the product, no text.
+{"People or figures may move only if the shop owner asked for it or they are already in the photo." if wens else "No people, no hands."}
 Return only the instruction."""
     for mime, data in fotos:
         try:
@@ -200,7 +202,8 @@ Return only the instruction."""
                                              "data": base64.b64encode(data).decode()}},
                 {"type": "text", "text": vraag}]}])
             tekst = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text").strip()
-            uit.append((tekst[:700] + " The product stays exactly the same; no rotation, no people, no text.") if tekst else KL.PROMPT_ECHT)
+            slot = " The product stays exactly the same; no rotation, no text." if wens else " The product stays exactly the same; no rotation, no people, no text."
+            uit.append((tekst[:700] + slot) if tekst else KL.PROMPT_ECHT)
         except Exception as ex:
             print("Beweging bedenken mislukt:", ex)
             uit.append(KL.PROMPT_ECHT)
@@ -285,7 +288,8 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
                 from .models import Media
                 tokens = [t for t in v.media_tokens.split(",") if t]
                 media = {m.token: m for m in db.query(Media).filter(Media.token.in_(tokens)).all()}
-                prompts = beweging_prompts(v.title, v.description, [(media[t].mime, media[t].data) for t in tokens if t in media])
+                prompts = beweging_prompts(v.title, v.description, [(media[t].mime, media[t].data) for t in tokens if t in media],
+                                           (getattr(v, "beweging", "") or "").strip())
                 if len(prompts) != len(fotos):
                     prompts = [KL.PROMPT_ECHT] * len(fotos)
                 for f, p in zip(fotos, prompts):

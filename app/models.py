@@ -215,6 +215,7 @@ class Video(Base):
     stem = Column(String(10), default="")         # leeg = moedertaalstem, man / vrouw
     echt = Column(Boolean, default=False)         # Echte video: foto's gaan bewegen (Kling), kost 3 filmpjes
     kling = Column(Text, default="")              # json met de Kling-opdrachten bij fal.ai
+    beweging = Column(Text, default="")           # wat de klant zelf wil zien bewegen (Echte video)
     winkel = Column(String(255), default="")      # naam van de winkel in het filmpje
     site = Column(String(255), default="")        # website in het filmpje
     media_tokens = Column(Text, default="")      # komma-gescheiden
@@ -254,6 +255,7 @@ def init_db():
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS stem VARCHAR(10) DEFAULT ''"))
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS echt BOOLEAN DEFAULT FALSE"))
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS kling TEXT DEFAULT ''"))
+                con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS beweging TEXT DEFAULT ''"))
             else:
                 kols = [r[1] for r in con.execute(_sql("PRAGMA table_info(nocturo_video)"))]
                 if "stijl" not in kols:
@@ -266,6 +268,8 @@ def init_db():
                     con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN echt BOOLEAN DEFAULT 0"))
                 if "kling" not in kols:
                     con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN kling TEXT DEFAULT ''"))
+                if "beweging" not in kols:
+                    con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN beweging TEXT DEFAULT ''"))
                 for kol in ("winkel", "site"):
                     if kol not in kols:
                         con.execute(_sql(f"ALTER TABLE nocturo_video ADD COLUMN {kol} VARCHAR(255) DEFAULT ''"))
