@@ -285,3 +285,24 @@ svg.uil{display:block;overflow:visible}
 .kt-meer-knoppen{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
 .kt-meer-knoppen form{margin:0}
 .stemkeus{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+
+/* ===== Licht en fris thema (27 nov 2026): kleuren uit de robots van de promofilm =====
+   crème/warm wit zoals het kantoor, mint/turquoise, warm oranje, een vleugje goud */
+:root{
+  --bg:#F7F4EE;--paneel:#FFFFFF;--paneel2:#FFFFFF;--lijn:#E7E1D6;--tekst:#1F2A33;--grijs:#6B7884;
+  --turq:#18A58C;--turq-zacht:rgba(24,165,140,.10);--oranje:#EE8A3C;--rood:#D9534F;--groen:#18A58C;
+}
+body{background:radial-gradient(1200px 600px at 85% -10%,rgba(24,165,140,.10),transparent 60%),radial-gradient(900px 500px at -10% 110%,rgba(238,138,60,.08),transparent 60%),var(--bg)}
+.kop{background:rgba(255,255,255,.88);box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.merk svg.uil,.merk img{filter:none}
+.inlog .logo svg.uil{filter:none}
+.paneel{background:#fff;box-shadow:0 2px 14px rgba(60,45,20,.06)}
+.tegel{box-shadow:0 1px 8px rgba(60,45,20,.05)}
+.knop{color:#fff}
+.knop.lijn{background:#fff}
+.knop.oranjevol{color:#fff}
+input,textarea,select{background:#FCFBF8}
+.taal select{background:#fff}
+.bezig{background:rgba(247,244,238,.96)}
+.kt-app.uit{border-color:#D9D2C5}
+.wc-punt{background:#FCFBF8}
