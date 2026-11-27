@@ -26,6 +26,27 @@
 
 {% if not va_klaar %}<div class="melding fout">{{ K('v_not_ready') }}</div>{% endif %}
 
+{% if zaal and zaal.clips %}
+<section class="paneel" style="padding:14px">
+  <h2>{{ K('zl_titel') }}</h2>
+  <div style="position:relative;border-radius:12px;overflow:hidden;background:#EDE7DC;aspect-ratio:16/9">
+    <video id="zaalvid" muted playsinline autoplay preload="auto" style="width:100%;height:100%;object-fit:cover;display:block"></video>
+    <div id="zaalzeg" style="position:absolute;left:12px;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px">
+      {% for wie, tekst in zaal.zeg %}
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.93);border-radius:14px;padding:6px 12px 6px 6px;box-shadow:0 4px 14px rgba(0,0,0,.12);width:fit-content;max-width:100%">
+        <img src="/static/robots/{{ wie }}.webp" alt="" width="34" height="34" style="border-radius:50%;flex:none"><span style="font-size:14px;color:#1F2A33">{{ tekst }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <script>
+  (function(){var c={{ zaal.clips|tojson }},i=0,v=document.getElementById('zaalvid');
+    try{i=(parseInt(sessionStorage.getItem('zaal_i')||'0',10)||0)%c.length;}catch(e){}
+    function speel(){v.src='/media/'+c[i];v.play().catch(function(){});}
+    v.addEventListener('ended',function(){i=(i+1)%c.length;try{sessionStorage.setItem('zaal_i',i);}catch(e){}speel();});speel();})();
+  </script>
+</section>
+{% endif %}
 <section class="paneel">
   <h2>{{ K('v_new') }}</h2>
   {% if over > 0 %}
@@ -131,4 +152,4 @@
 {% endif %}
 {% endif %}
 {% endblock %}
-{% block scripts %}{% if bezig %}<script>setTimeout(function(){location.reload()},10000);</script>{% endif %}{% endblock %}
+{% block scripts %}{% if bezig %}<script>setTimeout(function(){location.reload()},{{ 25000 if (zaal and zaal.clips) else 10000 }});</script>{% endif %}{% endblock %}

@@ -488,6 +488,25 @@ TEKSTEN.update({
     "ps_weg": ["Niet meer tonen", "Don't show again", "Nicht mehr anzeigen", "Ne plus afficher", "No volver a mostrar"],
 })
 
+TEKSTEN.update({
+    "zl_titel": ["Je team is voor je aan het werk", "Your team is working for you", "Ihr Team arbeitet für Sie",
+                 "Votre équipe travaille pour vous", "Tu equipo está trabajando para ti"],
+    "zl_speurder": ["De Speurder: ik heb je product bekeken: \"{t}\".", "The Scout: I've looked at your product: \"{t}\".",
+                    "Die Spürnase: Ich habe mir Ihr Produkt angesehen: \"{t}\".", "L'Éclaireur : j'ai regardé votre produit : « {t} ».",
+                    "El Rastreador: he mirado tu producto: «{t}»."],
+    "zl_tekst": ["De Analist: dit wordt de tekst: \"{t}\"", "The Analyst: this will be the script: \"{t}\"",
+                 "Der Analyst: Das wird der Text: \"{t}\"", "L'Analyste : voici le texte : « {t} »", "El Analista: este será el texto: «{t}»"],
+    "zl_beweeg": ["De Regisseur: ik laat je foto's nu echt bewegen, dat duurt een paar minuten…",
+                  "The Director: I'm bringing your photos to life now, this takes a few minutes…",
+                  "Der Regisseur: Ich erwecke Ihre Fotos jetzt zum Leben, das dauert ein paar Minuten…",
+                  "Le Réalisateur : j'anime vos photos, cela prend quelques minutes…",
+                  "El Director: estoy dando vida a tus fotos, tarda unos minutos…"],
+    "zl_monteer": ["De Regisseur: ik monteer het filmpje met stem en muziek…", "The Director: I'm editing the video with voice and music…",
+                   "Der Regisseur: Ich schneide das Video mit Stimme und Musik…", "Le Réalisateur : je monte la vidéo avec voix et musique…",
+                   "El Director: estoy montando el vídeo con voz y música…"],
+    "zl_bijna": ["Pling: bijna klaar!", "Pling: almost done!", "Pling: fast fertig!", "Pling : presque fini !", "Pling: ¡casi listo!"],
+})
+
 def k(key: str, lang: str, **kw) -> str:
     vals = TEKSTEN.get(key)
     if not vals:

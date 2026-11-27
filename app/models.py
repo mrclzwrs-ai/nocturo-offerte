@@ -201,6 +201,19 @@ class Media(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class ZaalClip(Base):
+    """Korte filmpjes van de robots in de vergaderkamer (wachtscherm). Eén keer gemaakt met Kling."""
+    __tablename__ = "nocturo_zaalclip"
+    id = Column(Integer, primary_key=True)
+    scene = Column(String(30), default="")
+    prompt = Column(Text, default="")
+    kling = Column(Text, default="")          # json met de opdracht bij fal.ai
+    status = Column(String(20), default="bezig")  # bezig / klaar / mislukt
+    token = Column(String(64), default="")    # Media-token van het mp4-filmpje
+    actief = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Video(Base):
     """Eén Video Ads-filmpje."""
     __tablename__ = "nocturo_video"

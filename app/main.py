@@ -531,14 +531,45 @@ def betaallink(key: str, c) -> str:
 
 
 @app.get("/media/{token}")
-def media(token: str, db=Depends(get_db)):
+def media(token: str, request: Request, db=Depends(get_db)):
     m = db.query(Media).filter(Media.token == token).first()
     if not m:
         raise HTTPException(404)
-    return Response(m.data, media_type=m.mime, headers={"Cache-Control": "public, max-age=31536000"})
+    data, kop = m.data, {"Cache-Control": "public, max-age=31536000", "Accept-Ranges": "bytes"}
+    # iPhone/iPad spelen een filmpje alleen af als de server stukjes (Range) kan leveren
+    bereik = request.headers.get("range", "")
+    if bereik.startswith("bytes="):
+        try:
+            a, _, b = bereik[6:].split(",")[0].partition("-")
+            start = int(a) if a else max(0, len(data) - int(b))
+            eind = int(b) if (a and b) else len(data) - 1
+            eind = min(eind, len(data) - 1)
+            kop["Content-Range"] = f"bytes {start}-{eind}/{len(data)}"
+            return Response(data[start:eind + 1], status_code=206, media_type=m.mime, headers=kop)
+        except ValueError:
+            pass
+    return Response(data, media_type=m.mime, headers=kop)
 
 
 # ---------- Video Ads ----------
+def _zaal_info(db, videos, lang):
+    """Wachtscherm: robotfilmpjes plus wat de robots op dit moment écht voor je doen."""
+    from . import zaal as ZA
+    v = next((x for x in videos if x.status in ("pending", "processing")), None)
+    if not v:
+        return None
+    zeg = []
+    zeg.append(("search", K.k("zl_speurder", lang, t=v.title)))
+    if v.voiceover:
+        zeg.append(("check", K.k("zl_tekst", lang, t=(v.voiceover[:110] + ("…" if len(v.voiceover) > 110 else "")))))
+    if getattr(v, "echt", False) and v.voiceover and not v.render_id:
+        zeg.append(("video", K.k("zl_beweeg", lang)))
+    if v.render_id:
+        zeg.append(("video", K.k("zl_monteer", lang)))
+        zeg.append(("pling", K.k("zl_bijna", lang)))
+    return {"clips": ZA.clips(db), "zeg": zeg}
+
+
 @app.get("/video", response_class=HTMLResponse)
 def video_page(request: Request, db=Depends(get_db)):
     c, lang = company_ctx(request, db)
@@ -552,6 +583,7 @@ def video_page(request: Request, db=Depends(get_db)):
               "winkel": qp.get("winkel", "")[:255] or c.name, "site": qp.get("site", "")[:255] or (c.website or "")}
     return render(request, "video.html", c, lang, videos=videos, actief=actief, over=over, limiet=limiet, vooraf=vooraf, muziek=VA.MUZIEK,
                   bezig=bezig, va_klaar=VA.klaar(), plus=video_plus(db, c), echt_kost=VA.ECHT_KOST,
+                  zaal=_zaal_info(db, videos, lang) if bezig else None,
                   plus_aangevraagd=bool(subs_van(db, c).get("videoplus") and subs_van(db, c)["videoplus"].status == "aangevraagd"))
 
 
@@ -1322,3 +1354,51 @@ async def kling_start(request: Request, foto: UploadFile = File(...), db=Depends
             jobs[key] = {"status": "mislukt", "fout": str(ex)[:300]}
     KLING_TESTS.append({"foto": url, "jobs": jobs})
     return go("/kling-proef")
+
+
+# ---------- De vergaderkamer: robotfilmpjes voor het wachtscherm (alleen Marcel) ----------
+from . import zaal as ZA
+from .models import ZaalClip
+
+
+@app.get("/zaal-maken", response_class=HTMLResponse)
+def zaal_page(request: Request, db=Depends(get_db)):
+    c = need_admin(request, db)
+    ZA.bijwerken(db, c.id)
+    lijst = db.query(ZaalClip).order_by(ZaalClip.id).all()
+    bezig = any(x.status == "bezig" for x in lijst)
+    rijen = ""
+    for x in lijst:
+        if x.status == "klaar":
+            inhoud = f'<video src="/media/{x.token}" muted loop playsinline autoplay style="width:100%;border-radius:10px"></video>'
+        elif x.status == "mislukt":
+            inhoud = '<p style="color:#b00">Mislukt</p>'
+        else:
+            inhoud = "<p>⏳ Bezig…</p>"
+        rijen += f'<div style="background:#fff;border-radius:12px;padding:10px"><b>{_esc(x.scene)}</b>{inhoud}</div>'
+    ververs = '<meta http-equiv="refresh" content="20">' if bezig else ""
+    return HTMLResponse(f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+{ververs}<title>Vergaderkamer maken</title></head>
+<body style="font-family:-apple-system,system-ui,sans-serif;max-width:1000px;margin:24px auto;padding:0 16px;background:#F7F4EE">
+<h1>De vergaderkamer</h1>
+<p>Kies de foto van de vergaderkamer met de vijf robots. De server maakt er 8 korte scènes van (± $2). Deze pagina ververst zichzelf tot alles klaar is; dat duurt meestal 5 à 10 minuten.</p>
+<form method="post" action="/zaal-maken" enctype="multipart/form-data" style="background:#fff;padding:16px;border-radius:12px">
+<p><input type="file" name="foto" accept="image/*" required style="font-size:18px"></p>
+<p><button type="submit" style="font-size:20px;padding:12px 24px;border-radius:10px;background:#18A58C;color:#fff;border:0">Maak de 8 scènes</button></p>
+</form>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:18px">{rijen}</div>
+<p><a href="/beheer">← terug naar beheer</a></p></body></html>""")
+
+
+@app.post("/zaal-maken")
+async def zaal_start(request: Request, foto: UploadFile = File(...), db=Depends(get_db)):
+    c = need_admin(request, db)
+    data = await foto.read()
+    mime = (foto.content_type or "").lower()
+    if not KL.klaar() or not mime.startswith("image/") or not data:
+        return go("/zaal-maken")
+    m = Media(company_id=c.id, mime=mime, data=data)
+    db.add(m)
+    db.commit()
+    ZA.start_alles(db, f"{base_url(request)}/media/{m.token}")
+    return go("/zaal-maken")
