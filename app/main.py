@@ -536,13 +536,13 @@ def video_page(request: Request, db=Depends(get_db)):
     vooraf = {"titel": qp.get("titel", "")[:120], "omschrijving": qp.get("omschrijving", "")[:2000],
               "winkel": qp.get("winkel", "")[:255] or c.name, "site": qp.get("site", "")[:255] or (c.website or "")}
     return render(request, "video.html", c, lang, videos=videos, actief=actief, over=over, limiet=limiet, vooraf=vooraf, muziek=VA.MUZIEK,
-                  bezig=bezig, va_klaar=VA.klaar(), plus=video_plus(db, c),
+                  bezig=bezig, va_klaar=VA.klaar(), plus=video_plus(db, c), echt_kost=VA.ECHT_KOST,
                   plus_aangevraagd=bool(subs_van(db, c).get("videoplus") and subs_van(db, c)["videoplus"].status == "aangevraagd"))
 
 
 @app.post("/video/nieuw")
 async def video_nieuw(request: Request, title: str = Form(...), price: str = Form("0"), description: str = Form(""),
-                      vlang: str = Form("nl"), stijl: str = Form("foto"), muziek: str = Form(""), stem: str = Form(""), winkel: str = Form(""), site: str = Form(""), fotos: list[UploadFile] = File(default=[]), db=Depends(get_db)):
+                      vlang: str = Form("nl"), stijl: str = Form("foto"), muziek: str = Form(""), stem: str = Form(""), winkel: str = Form(""), site: str = Form(""), soort: str = Form("gewoon"), fotos: list[UploadFile] = File(default=[]), db=Depends(get_db)):
     c, lang = company_ctx(request, db)
     if c.is_demo:
         return go("/aanmelden")
@@ -550,6 +550,10 @@ async def video_nieuw(request: Request, title: str = Form(...), price: str = For
     over, _ = VA.tegoed(db, c.id, actief, video_plus(db, c))
     if over <= 0:
         flash(request, K.k("v_limit" if actief else "v_trial_over", lang), "fout")
+        return go("/video")
+    echt = soort == "echt"
+    if echt and over < VA.ECHT_KOST:
+        flash(request, K.k("v_echt_te_weinig", lang, n=VA.ECHT_KOST), "fout")
         return go("/video")
     if not VA.klaar():
         flash(request, K.k("v_not_ready", lang), "fout")
@@ -578,12 +582,12 @@ async def video_nieuw(request: Request, title: str = Form(...), price: str = For
               lang=vlang if vlang in LANGS else lang, media_tokens=",".join(tokens),
               stijl=stijl if stijl in VA.STIJLEN else VA.STANDAARD_STIJL,
               muziek=muziek if muziek in VA.MUZIEK_KEYS else "",
-              stem=stem if stem in VA.STEMMEN else "",
+              stem=stem if stem in VA.STEMMEN else "", echt=echt,
               winkel=(winkel.strip() or c.name)[:255], site=(site.strip() or c.website or "")[:255])
     db.add(v)
     db.commit()
     VA.start_op_achtergrond(v.id, base_url(request), v.winkel, v.site)
-    flash(request, K.k("v_started", lang))
+    flash(request, K.k("v_started_echt" if echt else "v_started", lang))
     return go("/video")
 
 
@@ -632,13 +636,13 @@ def video_opnieuw(vid: int, request: Request, db=Depends(get_db)):
         return go("/video")
     actief = heeft_app(db, c, "video")
     over, _ = VA.tegoed(db, c.id, actief, video_plus(db, c))
-    if over <= 0:
+    if over < (VA.ECHT_KOST if v.echt else 1):
         flash(request, K.k("v_limit" if actief else "v_trial_over", lang), "fout")
         return go("/video")
     if not VA.klaar():
         flash(request, K.k("v_not_ready", lang), "fout")
         return go("/video")
-    v.status, v.error, v.render_id, v.voiceover, v.url, v.thumb = "pending", "", "", "", "", ""
+    v.status, v.error, v.render_id, v.voiceover, v.url, v.thumb, v.kling = "pending", "", "", "", "", "", ""
     db.commit()
     VA.start_op_achtergrond(v.id, base_url(request), v.winkel or c.name, v.site or c.website or "")
     flash(request, K.k("v_started", lang))

@@ -434,6 +434,33 @@ TEKSTEN.update({
                     "Hola, soy Pling. Llevo tus ofertas a la gente de tu barrio."],
 })
 
+TEKSTEN.update({
+    "v_soort": ["Soort filmpje", "Type of video", "Art des Videos", "Type de vidéo", "Tipo de vídeo"],
+    "v_gewoon": ["Gewoon filmpje", "Standard video", "Standard-Video", "Vidéo standard", "Vídeo estándar"],
+    "v_gewoon_uitleg": ["Je foto's met mooie overgangen · kost 1 filmpje", "Your photos with smooth transitions · costs 1 video",
+                        "Ihre Fotos mit schönen Übergängen · kostet 1 Video", "Vos photos avec de belles transitions · coûte 1 vidéo",
+                        "Tus fotos con transiciones bonitas · cuesta 1 vídeo"],
+    "v_echt": ["Echte video ✨", "Real video ✨", "Echtes Video ✨", "Vraie vidéo ✨", "Vídeo real ✨"],
+    "v_echt_uitleg": ["Je foto's gaan echt bewegen, als in een film · kost {n} filmpjes · duurt een paar minuten",
+                      "Your photos really come to life, like in a film · costs {n} videos · takes a few minutes",
+                      "Ihre Fotos bewegen sich wirklich, wie im Film · kostet {n} Videos · dauert ein paar Minuten",
+                      "Vos photos s'animent vraiment, comme au cinéma · coûte {n} vidéos · prend quelques minutes",
+                      "Tus fotos cobran vida de verdad, como en una película · cuesta {n} vídeos · tarda unos minutos"],
+    "v_echt_te_weinig": ["Voor een Echte video heb je {n} filmpjes tegoed nodig. Koop er 10 bij of kies Plus.",
+                         "A Real video needs {n} videos from your balance. Buy 10 extra or choose Plus.",
+                         "Für ein Echtes Video brauchen Sie noch {n} Videos. Kaufen Sie 10 dazu oder wählen Sie Plus.",
+                         "Une Vraie vidéo nécessite {n} vidéos. Achetez-en 10 de plus ou choisissez Plus.",
+                         "Un Vídeo real necesita {n} vídeos. Compra 10 más o elige Plus."],
+    "v_started_echt": ["Je Echte video wordt gemaakt. Dit duurt een paar minuten; je mag dit scherm gewoon openlaten of later terugkomen.",
+                       "Your Real video is being made. This takes a few minutes; you can keep this screen open or come back later.",
+                       "Ihr Echtes Video wird erstellt. Das dauert ein paar Minuten; Sie können diese Seite offen lassen oder später zurückkommen.",
+                       "Votre Vraie vidéo est en cours. Cela prend quelques minutes ; vous pouvez laisser cet écran ouvert ou revenir plus tard.",
+                       "Tu Vídeo real se está creando. Tarda unos minutos; puedes dejar esta pantalla abierta o volver más tarde."],
+    "v_busy_echt": ["Je foto's worden tot leven gewekt… dit duurt een paar minuten.", "Bringing your photos to life… this takes a few minutes.",
+                    "Ihre Fotos werden zum Leben erweckt… das dauert ein paar Minuten.", "Vos photos prennent vie… cela prend quelques minutes.",
+                    "Dando vida a tus fotos… tarda unos minutos."],
+})
+
 def k(key: str, lang: str, **kw) -> str:
     vals = TEKSTEN.get(key)
     if not vals:

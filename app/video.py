@@ -6,9 +6,11 @@ de voice-overtekst, Creatomate maakt het filmpje met het ShopReels-template v2.
 Limiet: 15 filmpjes per kalendermaand met een abonnement, 3 proeffilmpjes zonder.
 Nodig op de server: CREATOMATE_API_KEY (en ANTHROPIC_API_KEY, die Offerte al heeft).
 """
+import json
 import os
 import random
 import threading
+import time
 from datetime import datetime
 
 import requests
@@ -24,6 +26,9 @@ STIJLEN = {
 STANDAARD_STIJL = "foto"
 PER_MAAND = 15
 PROEF = 3
+ECHT_KOST = 3          # een Echte video kost 3 filmpjes van het tegoed (afgesproken 27 nov 2026)
+ECHT_MAX_WACHT = 20 * 60   # na 20 minuten zonder bewegend beeld geven we het op
+_ACTIEF: set = set()       # Echte video's waar een achtergrondtaak zelf naar kijkt
 
 VOICE_IDS = {
     "nl": "tfweP7lGJyLeNV9dH1Rm", "en": "laTmoAT4stwoPzthxjZT", "de": "sa2Ndyhs1V7h8EXKT9mV",
@@ -76,15 +81,20 @@ def klaar() -> bool:
     return bool(os.environ.get("CREATOMATE_API_KEY"))
 
 
+def _telling(q) -> int:
+    """Een gewoon filmpje telt 1, een Echte video telt ECHT_KOST."""
+    return sum(ECHT_KOST if getattr(v, "echt", False) else 1 for v in q.all())
+
+
 def gebruikt_deze_maand(db, company_id) -> int:
     nu = datetime.utcnow()
     begin = datetime(nu.year, nu.month, 1)
-    return db.query(Video).filter(Video.company_id == company_id, Video.created_at >= begin,
-                                  Video.status != "failed").count()
+    return _telling(db.query(Video).filter(Video.company_id == company_id, Video.created_at >= begin,
+                                           Video.status != "failed"))
 
 
 def gebruikt_totaal(db, company_id) -> int:
-    return db.query(Video).filter(Video.company_id == company_id, Video.status != "failed").count()
+    return _telling(db.query(Video).filter(Video.company_id == company_id, Video.status != "failed"))
 
 
 def extra_deze_maand(db, company_id) -> int:
@@ -161,7 +171,64 @@ Geef alleen de tekst terug."""
     return NOODTEKST.get(lang, NOODTEKST["nl"]).format(title=title), False
 
 
+def _modificaties(v, bronnen: list, base_url: str, shop_name: str, website: str, lang: str, dienst: bool) -> dict:
+    b1 = bronnen[0]
+    b2 = bronnen[1] if len(bronnen) > 1 else b1
+    b3 = bronnen[2] if len(bronnen) > 2 else b2
+    b4 = bronnen[3] if len(bronnen) > 3 else b3
+    return {
+        "title.text": v.title, "price.text": prijs_tekst(v.price), "price.visible": bool(v.price),
+        "product_image.source": b1, "image_2.source": b2, "image_3.source": b3, "image_4.source": b4,
+        "voiceover_audio.source": v.voiceover,
+        "voiceover_audio.provider": f"elevenlabs model_id=eleven_turbo_v2_5 voice_id={STEMMEN.get(getattr(v, 'stem', '') or '', VOICE_IDS[lang])} language_code={lang}",
+        "website.text": re.sub(r"^https?://(www\.)?", "", (website or shop_name)).rstrip("/"), "cta.text": f"{(CTA_DIENST if dienst else CTA)[lang]}{shop_name}",
+        "music.source": f"{base_url}/static/muziek/{kies_muziek(getattr(v, 'muziek', '') or '', getattr(v, 'stijl', '') or STANDAARD_STIJL)}.mp3"}
+
+
+def _kop():
+    return {"Authorization": f"Bearer {os.environ['CREATOMATE_API_KEY']}", "Content-Type": "application/json"}
+
+
+def _video_bron(template_id: str) -> dict:
+    """Haalt het sjabloon op en maakt van de vier foto-vakken video-vakken (voor Echte video)."""
+    r = requests.get(f"https://api.creatomate.com/v1/templates/{template_id}", headers=_kop(), timeout=30)
+    if r.status_code >= 300:
+        raise RuntimeError(f"Creatomate sjabloon {r.status_code}: {r.text[:200]}")
+    bron = r.json().get("source") or {}
+
+    def omzetten(els):
+        for e in els or []:
+            if e.get("type") == "composition":
+                omzetten(e.get("elements"))
+            elif e.get("type") == "image" and e.get("name") in ("product_image", "image_2", "image_3", "image_4"):
+                e["type"], e["loop"], e["volume"] = "video", True, "0%"
+                # het beeld beweegt zelf al; het langzame inzoomen van de foto's laten we weg
+                e["animations"] = [a for a in e.get("animations", []) if a.get("type") != "scale"]
+    omzetten(bron.get("elements"))
+    bron["output_format"] = "mp4"
+    return bron
+
+
+def _render(v, bronnen: list, base_url: str, shop_name: str, website: str, dienst: bool):
+    """Stuurt het filmpje naar Creatomate en bewaart het render-id."""
+    lang = v.lang if v.lang in VOICE_IDS else "nl"
+    template_id = STIJLEN.get(getattr(v, "stijl", None) or STANDAARD_STIJL, STIJLEN[STANDAARD_STIJL])
+    mods = _modificaties(v, bronnen, base_url, shop_name, website, lang, dienst)
+    body = {"modifications": mods}
+    if getattr(v, "echt", False):
+        body["source"] = _video_bron(template_id)
+    else:
+        body["template_id"] = template_id
+    r = requests.post("https://api.creatomate.com/v1/renders", timeout=60, headers=_kop(), json=body)
+    if r.status_code >= 300:
+        raise RuntimeError(f"Creatomate {r.status_code}: {r.text[:200]}")
+    data = r.json()
+    render = data[0] if isinstance(data, list) else data
+    v.render_id = render.get("id", "")
+
+
 def _start(video_id: int, base_url: str, shop_name: str, website: str):
+    echt = False
     with SessionLocal() as db:
         v = db.get(Video, video_id)
         if not v or v.status != "pending":
@@ -174,31 +241,66 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
             if not v.voiceover:
                 raise RuntimeError("Geen voice-overtekst")
             fotos = [f"{base_url}/media/{t}" for t in v.media_tokens.split(",") if t]
-            f1 = fotos[0]
-            f2 = fotos[1] if len(fotos) > 1 else f1
-            f3 = fotos[2] if len(fotos) > 2 else f2
-            f4 = fotos[3] if len(fotos) > 3 else f3
-            template_id = STIJLEN.get(getattr(v, "stijl", None) or STANDAARD_STIJL, STIJLEN[STANDAARD_STIJL])
-            r = requests.post("https://api.creatomate.com/v1/renders", timeout=60, headers={
-                "Authorization": f"Bearer {os.environ['CREATOMATE_API_KEY']}", "Content-Type": "application/json"},
-                json={"template_id": template_id, "modifications": {
-                    "title.text": v.title, "price.text": prijs_tekst(v.price), "price.visible": bool(v.price),
-                    "product_image.source": f1, "image_2.source": f2, "image_3.source": f3, "image_4.source": f4,
-                    "voiceover_audio.source": v.voiceover,
-                    "voiceover_audio.provider": f"elevenlabs model_id=eleven_turbo_v2_5 voice_id={STEMMEN.get(getattr(v, 'stem', '') or '', VOICE_IDS[lang])} language_code={lang}",
-                    "website.text": re.sub(r"^https?://(www\.)?", "", (website or shop_name)).rstrip("/"), "cta.text": f"{(CTA_DIENST if dienst else CTA)[lang]}{shop_name}",
-                    "music.source": f"{base_url}/static/muziek/{kies_muziek(getattr(v, 'muziek', '') or '', getattr(v, 'stijl', '') or STANDAARD_STIJL)}.mp3"}})
-            if r.status_code >= 300:
-                raise RuntimeError(f"Creatomate {r.status_code}: {r.text[:200]}")
-            data = r.json()
-            render = data[0] if isinstance(data, list) else data
-            v.render_id = render.get("id", "")
-            db.commit()
+            echt = bool(getattr(v, "echt", False))
+            if echt:
+                from . import kling as KL
+                if not KL.klaar():
+                    raise RuntimeError("FAL_KEY ontbreekt")
+                jobs = [KL.start(KL.ECHT_MODEL, f, KL.PROMPT_ECHT) for f in fotos]
+                v.kling = json.dumps({"jobs": jobs, "base_url": base_url, "shop": shop_name, "site": website,
+                                      "dienst": dienst, "gestart": time.time()})
+                db.commit()
+            else:
+                _render(v, fotos, base_url, shop_name, website, dienst)
+                db.commit()
         except Exception as ex:
             print(f"Video {video_id} mislukt:", ex)
             v.status = "failed"
             v.error = str(ex)[:500]
             db.commit()
+            return
+    if echt:
+        # Zelf blijven kijken tot de bewegende shots klaar zijn, ook als de klant de pagina dichtdoet.
+        _ACTIEF.add(video_id)
+        try:
+            while True:
+                time.sleep(10)
+                with SessionLocal() as db:
+                    v = db.get(Video, video_id)
+                    if not v or v.status != "processing" or v.render_id:
+                        return
+                    kling_verder(db, v)
+                    if v.status != "processing" or v.render_id:
+                        return
+        finally:
+            _ACTIEF.discard(video_id)
+
+
+def kling_verder(db, v):
+    """Echte video: vraagt fal.ai hoe het met de shots staat; zijn ze allemaal klaar, dan naar Creatomate."""
+    from . import kling as KL
+    try:
+        info = json.loads(v.kling or "{}")
+    except ValueError:
+        info = {}
+    jobs = info.get("jobs") or []
+    if not jobs:
+        return
+    for job in jobs:
+        KL.stand(job)
+    v.kling = json.dumps(info)
+    if any(j.get("status") == "mislukt" for j in jobs):
+        v.status, v.error = "failed", "Bewegend beeld mislukt: " + "; ".join(j.get("fout", "") for j in jobs if j.get("fout"))[:400]
+    elif all(j.get("status") == "klaar" for j in jobs):
+        try:
+            _render(v, [j["url"] for j in jobs], info.get("base_url", ""), info.get("shop", ""), info.get("site", ""),
+                    bool(info.get("dienst")))
+            print(f"Video {v.id}: bewegend beeld klaar na {int(time.time() - info.get('gestart', time.time()))} sec")
+        except Exception as ex:
+            v.status, v.error = "failed", str(ex)[:500]
+    elif time.time() - info.get("gestart", time.time()) > ECHT_MAX_WACHT:
+        v.status, v.error = "failed", "Bewegend beeld duurde te lang"
+    db.commit()
 
 
 def start_op_achtergrond(video_id, base_url, shop_name, website):
@@ -210,6 +312,10 @@ def ververs(db, videos):
     if not klaar():
         return
     for v in videos:
+        if v.status == "processing" and getattr(v, "echt", False) and not v.render_id:
+            if v.id not in _ACTIEF and v.kling:
+                kling_verder(db, v)   # reserve: als de achtergrondtaak door een herstart is gestopt
+            continue
         if v.status != "processing" or not v.render_id:
             continue
         try:

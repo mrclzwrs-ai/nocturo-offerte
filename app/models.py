@@ -213,6 +213,8 @@ class Video(Base):
     stijl = Column(String(20), default="foto")    # foto / luxe / licht
     muziek = Column(String(60), default="")       # leeg = het kantoor kiest
     stem = Column(String(10), default="")         # leeg = moedertaalstem, man / vrouw
+    echt = Column(Boolean, default=False)         # Echte video: foto's gaan bewegen (Kling), kost 3 filmpjes
+    kling = Column(Text, default="")              # json met de Kling-opdrachten bij fal.ai
     winkel = Column(String(255), default="")      # naam van de winkel in het filmpje
     site = Column(String(255), default="")        # website in het filmpje
     media_tokens = Column(Text, default="")      # komma-gescheiden
@@ -250,6 +252,8 @@ def init_db():
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS winkel VARCHAR(255) DEFAULT ''"))
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS site VARCHAR(255) DEFAULT ''"))
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS stem VARCHAR(10) DEFAULT ''"))
+                con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS echt BOOLEAN DEFAULT FALSE"))
+                con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS kling TEXT DEFAULT ''"))
             else:
                 kols = [r[1] for r in con.execute(_sql("PRAGMA table_info(nocturo_video)"))]
                 if "stijl" not in kols:
@@ -258,6 +262,10 @@ def init_db():
                     con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN muziek VARCHAR(60) DEFAULT ''"))
                 if "stem" not in kols:
                     con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN stem VARCHAR(10) DEFAULT ''"))
+                if "echt" not in kols:
+                    con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN echt BOOLEAN DEFAULT 0"))
+                if "kling" not in kols:
+                    con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN kling TEXT DEFAULT ''"))
                 for kol in ("winkel", "site"):
                     if kol not in kols:
                         con.execute(_sql(f"ALTER TABLE nocturo_video ADD COLUMN {kol} VARCHAR(255) DEFAULT ''"))

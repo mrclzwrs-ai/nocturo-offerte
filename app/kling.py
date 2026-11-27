@@ -19,7 +19,14 @@ MODELLEN = {
 PROMPT = ("Cinematic product commercial shot. Slow, smooth camera push-in with a gentle orbit around the product. "
           "Soft studio lighting with subtle light sweeps and reflections. The product itself stays exactly the same "
           "shape, colour and label. Elegant, premium, calm movement.")
-NEGATIEF = "blur, distortion, deformed product, changing logo, extra objects, text, watermark, people, hands"
+# Voor klantfilmpjes (Echte video): camera blijft vóór het product, zodat Kling geen achterkant verzint.
+PROMPT_ECHT = ("Cinematic product commercial shot. The camera stays in front of the product and moves only slightly: "
+               "a slow, smooth push-in. Soft studio lighting with gentle light sweeps, reflections and moving shadows. "
+               "The product does not rotate or turn around and stays exactly the same shape, colour and label. "
+               "Elegant, premium, calm movement.")
+ECHT_MODEL = "standaard"   # gekozen door Marcel op 27 nov 2026 (Kling 2.1 Standard, $0,25 per shot)
+NEGATIEF = ("blur, distortion, deformed product, changing logo, extra objects, text, watermark, people, hands, "
+            "rotating product, turning around, back side")
 
 
 def klaar() -> bool:
