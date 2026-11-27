@@ -93,6 +93,11 @@ WOORDEN_SUB = ("product", "products", "collections", "shop", "winkel", "assortim
                "ons", "aanbod", "diensten", "services", "menu", "producten", "categorie", "category")
 
 
+SOCIAAL = {"Instagram": ["instagram.com"], "Facebook": ["facebook.com", "fb.com"], "TikTok": ["tiktok.com"],
+           "YouTube": ["youtube.com", "youtu.be"], "LinkedIn": ["linkedin.com"], "X": ["x.com", "twitter.com"],
+           "Threads": ["threads.net", "threads.com"], "Reddit": ["reddit.com"], "Pinterest": ["pinterest.com"]}
+
+
 def lees_website(start: str) -> dict:
     if not start.startswith("http"):
         start = "https://" + start.strip()
@@ -129,7 +134,14 @@ def lees_website(start: str) -> dict:
     for f in fotos:
         if f.startswith("http") and f not in schoon and not re.search(r"(logo|icon|sprite|pixel|badge|payment)", f, re.I):
             schoon.append(f)
-    return {"start": eind, "paginas": paginas, "fotos": schoon[:12]}
+    socials = {}
+    for href in hoofd.links:
+        u = urljoin(eind, href)
+        h = (urlparse(u).hostname or "").lower().replace("www.", "").replace("m.", "", 1)
+        for naam, dom in SOCIAAL.items():
+            if any(h == d or h.endswith("." + d) for d in dom) and naam not in socials:
+                socials[naam] = u
+    return {"start": eind, "paginas": paginas, "fotos": schoon[:12], "socials": socials}
 
 
 # ---------- Claude ----------

@@ -7,29 +7,47 @@ from .models import Klant, SessionLocal
 
 DOELEN = ["publiek", "klanten", "verkoop", "bekend", "anders"]
 
+KANALEN = ["Instagram","Facebook","TikTok","YouTube","LinkedIn","X","Threads","Reddit","Pinterest","Google","E-mail","Brief","Website"]
+
 TOOL = {
     "name": "voorstel",
-    "description": "Onderzoek van de website en een voorstel (funnel) om het doel van de klant te halen.",
+    "description": "Volledige verkoopanalyse: profilering, jezelf verkopen, product verkopen, kanalen met kant-en-klare berichten, plan.",
     "input_schema": {
         "type": "object",
         "properties": {
-            "wat_ze_doen": {"type": "string", "description": "Wat dit bedrijf verkoopt/doet en voor wie, 2-3 zinnen."},
-            "ontdekt": {"type": "array", "items": {"type": "string"}, "description": "3-5 opvallende dingen die het team op de website ontdekte (goed én beter)."},
-            "plan": {"type": "array", "description": "3-5 stappen van de funnel, in volgorde: eerst gezien worden, dan interesse, dan klant worden.",
+            "wat_ze_doen": {"type": "string", "description": "Wat dit bedrijf/deze persoon verkoopt/doet en voor wie, 2-3 zinnen."},
+            "wie_ben_je": {"type": "string", "description": "Profilering: hoe komt het bedrijf nu over, wat maakt ze anders, waarom zou men hen vertrouwen. 3-5 zinnen, eerlijk."},
+            "jezelf_verkopen": {"type": "array", "items": {"type": "string"}, "description": "3-5 concrete adviezen om de eigenaar/het bedrijf zelf te verkopen (verhaal, gezicht, vertrouwen, reviews)."},
+            "product_verkopen": {"type": "array", "items": {"type": "string"}, "description": "3-5 concrete adviezen om het product/de dienst te verkopen (voor wie, probleem, aanbod, prijs, bezwaren)."},
+            "ontdekt": {"type": "array", "items": {"type": "string"}, "description": "3-5 opvallende dingen (goed én beter), ook waar klanten nu weglekken."},
+            "kanalen": {"type": "array", "description": "Alle relevante kanalen, ook waar ze nog NIET zijn. Status alleen 'aanwezig' als de link in de gevonden sociale links staat; anders 'niet gevonden'. Volgers nooit gokken.",
+                        "items": {"type": "object", "properties": {
+                            "kanaal": {"type": "string", "enum": KANALEN},
+                            "status": {"type": "string", "enum": ["aanwezig", "niet gevonden"]},
+                            "advies": {"type": "string", "description": "Past dit kanaal en wat te doen, 1-2 zinnen."}},
+                            "required": ["kanaal", "status", "advies"]}},
+            "berichten": {"type": "array", "description": "4-6 kant-en-klare stukken voor de beste kanalen: geen filmpjes maar tekst (post, verhaal, uitleg, draadje, brief, mail). Reddit: behulpzaam, geen reclame.",
+                          "items": {"type": "object", "properties": {
+                              "kanaal": {"type": "string", "enum": KANALEN},
+                              "soort": {"type": "string", "description": "Bijv. post met foto, verhaal, draadje, brief, mail, uitleg."},
+                              "tekst": {"type": "string", "description": "De volledige tekst, klaar om te plakken, met eventuele hashtags."},
+                              "plaatsen": {"type": "array", "items": {"type": "string"}, "description": "3-5 korte stappen hoe je dit zelf plaatst op dit kanaal."}},
+                              "required": ["kanaal", "soort", "tekst", "plaatsen"]}},
+            "plan": {"type": "array", "description": "4-6 stappen in volgorde: eerst jezelf profileren, dan gezien worden, dan interesse, dan klant maken, dan vasthouden.",
                      "items": {"type": "object", "properties": {
                          "stap": {"type": "string", "description": "Korte titel van de stap (3-7 woorden)."},
-                         "uitleg": {"type": "string", "description": "Wat we doen en waarom, 1-2 zinnen, op zichzelf te begrijpen."},
+                         "uitleg": {"type": "string", "description": "Wat we doen en waarom, 1-2 zinnen."},
                          "robot": {"type": "string", "enum": ["speurder", "analist", "regisseur", "boekhouder"],
-                                   "description": "Welke collega dit doet: speurder=nieuwe klanten zoeken en mailen, analist=website/onderzoek, regisseur=filmpjes, boekhouder=offertes."}},
+                                   "description": "speurder=nieuwe klanten zoeken, mails en brieven, analist=onderzoek en teksten, regisseur=filmpjes, boekhouder=offertes."}},
                          "required": ["stap", "uitleg", "robot"]}},
-            "filmpjes": {"type": "array", "description": "3 ideeën voor korte reclamefilmpjes die bij het plan horen.",
+            "filmpjes": {"type": "array", "description": "2-3 ideeën voor korte reclamefilmpjes, als één onderdeel van het plan.",
                          "items": {"type": "object", "properties": {
-                             "titel": {"type": "string", "description": "Wat er in beeld komt (product of dienst), kort."},
-                             "omschrijving": {"type": "string", "description": "2-3 zinnen voor de voice-over: haakje, voordeel, uitnodiging."}},
+                             "titel": {"type": "string", "description": "Wat er in beeld komt, kort."},
+                             "omschrijving": {"type": "string", "description": "2-3 zinnen voor de voice-over."}},
                              "required": ["titel", "omschrijving"]}},
-            "voorstel_tekst": {"type": "string", "description": "Een nette, korte voorsteltekst (6-10 zinnen) die de gebruiker zo aan zijn klant kan sturen, in de ik/wij-vorm van de gebruiker, zonder AI te noemen."},
+            "voorstel_tekst": {"type": "string", "description": "Nette voorsteltekst (6-10 zinnen) die de gebruiker zo aan zijn klant kan sturen, in de ik/wij-vorm van de gebruiker, zonder AI te noemen."},
         },
-        "required": ["wat_ze_doen", "ontdekt", "plan", "filmpjes", "voorstel_tekst"],
+        "required": ["wat_ze_doen", "wie_ben_je", "jezelf_verkopen", "product_verkopen", "ontdekt", "kanalen", "berichten", "plan", "filmpjes", "voorstel_tekst"],
     },
 }
 
@@ -52,12 +70,14 @@ def _maak(k_id: int):
             system = ("Je bent het verkoopteam van Nocturo: een ervaren verkoper met een team (Speurder, Analist, Regisseur, Boekhouder). "
                       "Een gebruiker werkt voor een klant en wil diens doel halen. Schrijf alles in het " + taal + ", in gewone, warme taal, "
                       "spreek de gebruiker aan met 'je'. Baseer je ALLEEN op de websitetekst; verzin geen producten, prijzen of feiten. "
-                      "Beloof nooit omzet of aantallen. Maak een logisch funnelplan: eerst gezien worden, dan interesse wekken, dan klant maken.")
+                      "Beloof nooit omzet of aantallen. Kijk breder dan filmpjes: het gaat om de hele verkoopstrategie. Eerst verkoop je jezelf "
+                      "(profilering, vertrouwen), daarna je product. Bekijk alle kanalen (social media, Google, mail, brieven) en maak kant-en-klare teksten.")
             system = met_methode(system, "gebruik de verkoopmethode voor het plan en de filmpjes: herkenbare opening, behoefte wekken, voordelen, bezwaren wegnemen, duidelijke volgende stap.")
             user = (f"Klant: {k.naam}\nWebsite: {site['start']}\nDoel: {DOELTEKST.get(k.doel, k.doel)}\n"
-                    f"Extra wens van de gebruiker: {k.wens or '-'}\n\nTekst van de website (per pagina):\n"
+                    f"Extra wens van de gebruiker: {k.wens or '-'}\n"
+                    f"Sociale links gevonden op de website: {json.dumps(site.get('socials', {}), ensure_ascii=False) or 'geen'}\n\nTekst van de website (per pagina):\n"
                     + json.dumps(site["paginas"], ensure_ascii=False))
-            k.plan = json.dumps(_call_tool(system, user, TOOL, max_tokens=5000), ensure_ascii=False)
+            k.plan = json.dumps(_call_tool(system, user, TOOL, max_tokens=9000), ensure_ascii=False)
             k.status = "klaar"
         except Exception as ex:
             print(f"Klant {k_id} mislukt:", ex)

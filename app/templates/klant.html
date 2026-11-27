@@ -34,6 +34,25 @@
   <p style="font-size:17px;margin:0">{{ plan.wat_ze_doen }}</p>
 </section>
 
+{% set rb = {'speurder':'search','analist':'check','regisseur':'video','boekhouder':'offerte'} %}
+{% if plan.wie_ben_je %}
+<section class="paneel">
+  <h2>{{ K('kl_wie') }}</h2>
+  <div style="display:flex;gap:12px;align-items:flex-start">
+    <img src="/static/robots/check.webp" alt="" width="52" height="52" style="border-radius:50%;flex:none">
+    <p style="margin:0">{{ plan.wie_ben_je }}</p>
+  </div>
+</section>
+<section class="paneel">
+  <h2>{{ K('kl_zelf') }}</h2>
+  <ul style="margin:0;padding-left:18px">{% for o in plan.jezelf_verkopen %}<li style="margin-bottom:6px">{{ o }}</li>{% endfor %}</ul>
+</section>
+<section class="paneel">
+  <h2>{{ K('kl_product') }}</h2>
+  <ul style="margin:0;padding-left:18px">{% for o in plan.product_verkopen %}<li style="margin-bottom:6px">{{ o }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
 <section class="paneel">
   <h2>{{ K('kl_ontdekt') }}</h2>
   <div style="display:flex;gap:12px;align-items:flex-start">
@@ -42,9 +61,21 @@
   </div>
 </section>
 
+{% if plan.kanalen %}
+<section class="paneel">
+  <h2>{{ K('kl_kanalen') }}</h2>
+  {% for c in plan.kanalen %}
+  <div style="padding:9px 0;border-top:1px solid var(--lijn)">
+    <b>{{ c.kanaal }}</b>
+    <span class="st" style="margin-left:6px;{% if c.status == 'aanwezig' %}color:var(--turq);border-color:var(--turq){% else %}color:var(--oranje);border-color:var(--oranje){% endif %}">{{ K('kl_aanwezig') if c.status == 'aanwezig' else K('kl_niet') }}</span>
+    <div class="hint" style="margin-top:4px">{{ c.advies }}</div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
 <section class="paneel">
   <h2>{{ K('kl_plan') }}</h2>
-  {% set rb = {'speurder':'search','analist':'check','regisseur':'video','boekhouder':'offerte'} %}
   {% for s in plan.plan %}
   <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--lijn)">
     <img src="/static/robots/{{ rb.get(s.robot, 'check') }}.webp" alt="" width="48" height="48" style="border-radius:50%;flex:none">
@@ -52,6 +83,21 @@
   </div>
   {% endfor %}
 </section>
+
+{% if plan.berichten %}
+<section class="paneel">
+  <h2>{{ K('kl_berichten') }}</h2>
+  {% for m in plan.berichten %}
+  <div style="border:1px solid var(--lijn);border-radius:12px;padding:14px;margin-bottom:12px">
+    <b>{{ m.kanaal }}</b> <span class="hint">· {{ m.soort }}</span>
+    <textarea id="bt{{ loop.index }}" rows="7" style="font-size:15px;margin-top:8px">{{ m.tekst }}</textarea>
+    <button class="knop lijn" style="margin-top:8px" onclick="var t=document.getElementById('bt{{ loop.index }}');t.select();try{navigator.clipboard.writeText(t.value);}catch(e){document.execCommand('copy');}this.textContent='✓';">{{ K('kl_kopieer') }}</button>
+    <div style="margin-top:10px"><b style="font-size:14px">{{ K('kl_zoplaats') }}</b>
+      <ol style="margin:4px 0 0;padding-left:20px">{% for st in m.plaatsen %}<li class="hint">{{ st }}</li>{% endfor %}</ol></div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
 
 <section class="paneel">
   <h2>{{ K('kl_films') }}</h2>
