@@ -1,7 +1,7 @@
 """Echte video (proef): een productfoto laten bewegen met Kling via fal.ai.
 
 Nodig op de server: FAL_KEY. Dit bestand doet alleen het praten met fal.ai;
-de testpagina staat in main.py onder /beheer/kling (alleen Marcel).
+de testpagina staat in main.py onder /kling-proef (alleen Marcel).
 """
 import os
 import time

@@ -1246,7 +1246,7 @@ from . import kling as KL
 KLING_TESTS: list[dict] = []   # alleen in het geheugen; na een herstart weg (het is een proef)
 
 
-@app.get("/beheer/kling", response_class=HTMLResponse)
+@app.get("/kling-proef", response_class=HTMLResponse)
 def kling_page(request: Request, db=Depends(get_db)):
     need_admin(request, db)
     for t_ in KLING_TESTS:
@@ -1277,19 +1277,19 @@ def kling_page(request: Request, db=Depends(get_db)):
 <h1>Echte video – proef</h1>
 <p>Kies één productfoto. Er worden twee bewegende shots van 5 seconden gemaakt: met Kling Pro en met Kling Standard.
 Deze pagina ververst zichzelf tot ze klaar zijn.</p>{melding}
-<form method="post" action="/beheer/kling" enctype="multipart/form-data" style="background:#f5f5f7;padding:16px;border-radius:12px">
+<form method="post" action="/kling-proef" enctype="multipart/form-data" style="background:#f5f5f7;padding:16px;border-radius:12px">
 <p><input type="file" name="foto" accept="image/*" required style="font-size:18px"></p>
 <p><button type="submit" style="font-size:20px;padding:12px 24px;border-radius:10px;background:#111;color:#fff;border:0">Maak de twee shots</button></p>
 </form>{rijen}<p><a href="/beheer">← terug naar beheer</a></p></body></html>""")
 
 
-@app.post("/beheer/kling")
+@app.post("/kling-proef")
 async def kling_start(request: Request, foto: UploadFile = File(...), db=Depends(get_db)):
     c = need_admin(request, db)
     data = await foto.read()
     mime = (foto.content_type or "").lower()
     if not KL.klaar() or not mime.startswith("image/") or not data or len(data) > 8 * 1024 * 1024:
-        return go("/beheer/kling")
+        return go("/kling-proef")
     m = Media(company_id=c.id, mime=mime, data=data)
     db.add(m)
     db.commit()
@@ -1302,4 +1302,4 @@ async def kling_start(request: Request, foto: UploadFile = File(...), db=Depends
             print("Kling-proef mislukt:", ex)
             jobs[key] = {"status": "mislukt", "fout": str(ex)[:300]}
     KLING_TESTS.append({"foto": url, "jobs": jobs})
-    return go("/beheer/kling")
+    return go("/kling-proef")
