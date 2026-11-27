@@ -60,6 +60,8 @@ VRIENDEN = [
      "pw_hash": "scrypt$2UGgitZQyg1pf2/kVjvyBw==$7+c/as14ID1xl4a4Qjj7xHyDK7+jVtvKIv5GzKJLwj3RjwDQr6dnbh1niMJjs2OdK70fMQQhRGIRm2uRzWxgWw=="},
     {"email": "ronald@nocturoapps.com", "name": "Ronald",
      "pw_hash": "scrypt$Y4aeyVoI1bS5rDwfyedHMw==$aBYy8jtbVdwglSZ0y0l60rgXONjAGqY/4OXNqGqcB7vSqbWVetjZzuaaDUPcqVJlUX+IFKkyFjE8QAX/t2DaUg=="},
+    {"email": "mark@nocturoapps.com", "name": "Mark",
+     "pw_hash": "scrypt$b6ZvuyMxqdm4s7AE3kFDyQ==$rQhecMMezYloRG1Yto3HGvsC9Mg7ckmWJrcT8hUX2qTD4slHlWt61QzQ1tAIwkYBimtp39TYtnY+BlsNHGQGUg=="},
 ]
 
 
