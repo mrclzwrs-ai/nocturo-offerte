@@ -51,6 +51,13 @@
       </div>
       <div class="hint">{{ K('v_length_hint') }}</div>
     </div>
+    <div class="veld"><label>{{ K('v_voice') }}</label>
+      <div class="stemkeus">
+        {% for key in ['', 'man', 'vrouw'] %}
+        <label class="muz"><input type="radio" name="stem" value="{{ key }}" {{ 'checked' if key == '' }}><span><b>{{ K('stem_' ~ (key or 'std')) }}</b><small>{{ K('stem_' ~ (key or 'std') ~ '_uitleg') }}</small></span></label>
+        {% endfor %}
+      </div>
+    </div>
     <div class="veld"><label>{{ K('v_music') }}</label>
       <div class="muzieklijst">
         <label class="muz"><input type="radio" name="muziek" value="" checked><span><b>{{ K('v_music_auto') }}</b><small>{{ K('v_music_auto_uitleg') }}</small></span></label>

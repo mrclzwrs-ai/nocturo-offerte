@@ -29,6 +29,9 @@ VOICE_IDS = {
     "nl": "tfweP7lGJyLeNV9dH1Rm", "en": "laTmoAT4stwoPzthxjZT", "de": "sa2Ndyhs1V7h8EXKT9mV",
     "fr": "LFo5X4P9PhYaOLBA9Hyh", "es": "FA1FBP9TKxnBiw45fHmS",
 }
+# Extra stemmen (27 nov 2026): standaard ElevenLabs-stemmen die alle talen spreken.
+# Leeg = de moedertaalstem per taal hierboven.
+STEMMEN = {"man": "pNInz6obpgDQGcFmaJgB", "vrouw": "21m00Tcm4TlvDq8ikWAM"}
 CTA = {"nl": "Bestel nu bij ", "en": "Shop now at ", "de": "Jetzt bestellen bei ",
        "fr": "Commandez sur ", "es": "Pide ahora en "}
 SLOGANS = ["Op is op!", "Wacht niet te lang!", "Mis het niet!", "Snel zijn is de boodschap!"]
@@ -182,7 +185,7 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
                     "title.text": v.title, "price.text": prijs_tekst(v.price), "price.visible": bool(v.price),
                     "product_image.source": f1, "image_2.source": f2, "image_3.source": f3, "image_4.source": f4,
                     "voiceover_audio.source": v.voiceover,
-                    "voiceover_audio.provider": f"elevenlabs model_id=eleven_turbo_v2_5 voice_id={VOICE_IDS[lang]} language_code={lang}",
+                    "voiceover_audio.provider": f"elevenlabs model_id=eleven_turbo_v2_5 voice_id={STEMMEN.get(getattr(v, 'stem', '') or '', VOICE_IDS[lang])} language_code={lang}",
                     "website.text": re.sub(r"^https?://(www\.)?", "", (website or shop_name)).rstrip("/"), "cta.text": f"{(CTA_DIENST if dienst else CTA)[lang]}{shop_name}",
                     "music.source": f"{base_url}/static/muziek/{kies_muziek(getattr(v, 'muziek', '') or '', getattr(v, 'stijl', '') or STANDAARD_STIJL)}.mp3"}})
             if r.status_code >= 300:

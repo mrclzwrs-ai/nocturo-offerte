@@ -389,6 +389,17 @@ TEKSTEN.update({
                      "Tu solicitud de Plus ha llegado. La activamos en cuanto se complete el pago."],
 })
 
+TEKSTEN.update({
+    "v_voice": ["Stem", "Voice", "Stimme", "Voix", "Voz"],
+    "stem_std": ["Moedertaalstem", "Native voice", "Muttersprachliche Stimme", "Voix native", "Voz nativa"],
+    "stem_std_uitleg": ["De vaste stem voor de gekozen taal", "The standard voice for the chosen language", "Die Standardstimme für die gewählte Sprache",
+                        "La voix standard de la langue choisie", "La voz estándar del idioma elegido"],
+    "stem_man": ["Mannenstem", "Male voice", "Männerstimme", "Voix d'homme", "Voz masculina"],
+    "stem_man_uitleg": ["Warm en krachtig", "Warm and strong", "Warm und kräftig", "Chaleureuse et forte", "Cálida y potente"],
+    "stem_vrouw": ["Vrouwenstem", "Female voice", "Frauenstimme", "Voix de femme", "Voz femenina"],
+    "stem_vrouw_uitleg": ["Helder en rustig", "Clear and calm", "Klar und ruhig", "Claire et calme", "Clara y tranquila"],
+})
+
 # Robots: elke app heeft zijn eigen collega (zelfde robots als in de promofilm)
 TEKSTEN.update({
     "rb_n_search": ["De Speurder", "The Scout", "Die Spürnase", "L'Éclaireur", "El Rastreador"],

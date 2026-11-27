@@ -284,3 +284,4 @@ svg.uil{display:block;overflow:visible}
 .kt-meer.op{border-color:var(--oranje,#F5A623)}
 .kt-meer-knoppen{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
 .kt-meer-knoppen form{margin:0}
+.stemkeus{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
