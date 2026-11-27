@@ -201,6 +201,22 @@ class Media(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class Klant(Base):
+    """Voor wie werk je? Een klant van de gebruiker (bijv. Ronald werkt voor een andere zaak)."""
+    __tablename__ = "nocturo_klant"
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    naam = Column(String(255), default="")
+    website = Column(String(255), default="")
+    doel = Column(String(40), default="")
+    wens = Column(Text, default="")
+    lang = Column(String(5), default="nl")
+    status = Column(String(20), default="pending")   # pending / processing / klaar / failed
+    plan = Column(Text, default="")                   # json met onderzoek en voorstel
+    error = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class ZaalClip(Base):
     """Korte filmpjes van de robots in de vergaderkamer (wachtscherm). Eén keer gemaakt met Kling."""
     __tablename__ = "nocturo_zaalclip"

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Nocturo · {{ k.naam }}{% endblock %}
+{% block content %}
+<p><a href="/klanten">← {{ K('kl_titel') }}</a></p>
+<div class="kt-kop"><div><h2>{{ K('kl_d_' ~ k.doel) }} · {{ k.website }}</h2><h1>{{ k.naam }}</h1></div></div>
+
+{% if k.status in ['pending', 'processing'] %}
+<section class="paneel" style="padding:14px">
+  <h2>{{ K('zl_titel') }}</h2>
+  <div style="position:relative;border-radius:12px;overflow:hidden;background:#EDE7DC;aspect-ratio:16/9">
+    {% if clips %}<video id="zaalvid" muted playsinline autoplay preload="auto" style="width:100%;height:100%;object-fit:cover;display:block"></video>{% endif %}
+    <div style="position:absolute;left:12px;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px">
+      {% for wie, sl in [('check','kl_b1'),('search','kl_b2'),('video','kl_b3')] %}
+      <div class="zbal" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.93);border-radius:14px;padding:6px 12px 6px 6px;box-shadow:0 4px 14px rgba(0,0,0,.12);width:fit-content;max-width:100%;opacity:0;transition:opacity .6s">
+        <img src="/static/robots/{{ wie }}.webp" alt="" width="34" height="34" style="border-radius:50%;flex:none"><span style="font-size:14px;color:#1F2A33">{{ K(sl, n=k.naam) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <p class="hint" style="margin:10px 0 0">{{ K('kl_bezig') }}</p>
+  <script>
+  (function(){var b=document.querySelectorAll('.zbal');b.forEach(function(x,i){setTimeout(function(){x.style.opacity=1;},800+i*3500);});
+    var c={{ clips|tojson }},i=0,v=document.getElementById('zaalvid');if(!v||!c.length)return;
+    try{i=(parseInt(sessionStorage.getItem('zaal_i')||'0',10)||0)%c.length;}catch(e){}
+    function speel(){v.src='/media/'+c[i];v.play().catch(function(){});}
+    v.addEventListener('ended',function(){i=(i+1)%c.length;try{sessionStorage.setItem('zaal_i',i);}catch(e){}speel();});speel();
+    setTimeout(function(){location.reload();},20000);})();
+  </script>
+</section>
+{% elif k.status == 'failed' %}
+<div class="melding fout">{{ K('kl_mislukt') }}</div>
+{% else %}
+<section class="paneel">
+  <p style="font-size:17px;margin:0">{{ plan.wat_ze_doen }}</p>
+</section>
+
+<section class="paneel">
+  <h2>{{ K('kl_ontdekt') }}</h2>
+  <div style="display:flex;gap:12px;align-items:flex-start">
+    <img src="/static/robots/check.webp" alt="" width="52" height="52" style="border-radius:50%;flex:none">
+    <ul style="margin:0;padding-left:18px">{% for o in plan.ontdekt %}<li style="margin-bottom:6px">{{ o }}</li>{% endfor %}</ul>
+  </div>
+</section>
+
+<section class="paneel">
+  <h2>{{ K('kl_plan') }}</h2>
+  {% set rb = {'speurder':'search','analist':'check','regisseur':'video','boekhouder':'offerte'} %}
+  {% for s in plan.plan %}
+  <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--lijn)">
+    <img src="/static/robots/{{ rb.get(s.robot, 'check') }}.webp" alt="" width="48" height="48" style="border-radius:50%;flex:none">
+    <div><b>{{ loop.index }}. {{ s.stap }}</b><div>{{ s.uitleg }}</div></div>
+  </div>
+  {% endfor %}
+</section>
+
+<section class="paneel">
+  <h2>{{ K('kl_films') }}</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+  {% for f in plan.filmpjes %}
+    <div style="border:1px solid var(--lijn);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><img src="/static/robots/video.webp" alt="" width="36" height="36" style="border-radius:50%"><b>{{ f.titel }}</b></div>
+      <div class="hint">{{ f.omschrijving }}</div>
+      <a class="knop" href="{{ filmlinks[loop.index0] }}" style="margin-top:auto">{{ K('kl_maak') }}</a>
+    </div>
+  {% endfor %}
+  </div>
+</section>
+
+<section class="paneel">
+  <h2>{{ K('kl_voorstel') }}</h2>
+  <textarea id="vtekst" rows="9" style="font-size:15px">{{ plan.voorstel_tekst }}</textarea>
+  <button class="knop lijn" style="margin-top:10px" onclick="var t=document.getElementById('vtekst');t.select();try{navigator.clipboard.writeText(t.value);}catch(e){document.execCommand('copy');}this.textContent='✓';">{{ K('kl_kopieer') }}</button>
+</section>
+{% endif %}
+{% endblock %}

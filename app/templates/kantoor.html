@@ -45,6 +45,12 @@
 </section>
 {% endif %}
 
+<section class="paneel" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  <img src="/static/robots/check.webp" alt="" width="64" height="64" style="border-radius:50%;flex:none">
+  <div style="flex:1;min-width:200px"><h2 style="margin:0 0 4px">{{ K('kl_titel') }}</h2><p style="margin:0">{{ K('kl_uitleg') }}</p></div>
+  <a class="knop groot" href="/klanten">{{ K('kl_start') }}</a>
+</section>
+
 <div class="kt-apps">
 {% for a in kaarten %}
   {% set aan = a.status in ['actief', 'proef'] %}

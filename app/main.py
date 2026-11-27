@@ -51,6 +51,11 @@ def _startup():
         WC.herstel_na_herstart()
     except Exception as ex:
         print("Checks herstarten mislukt:", ex)
+    try:
+        from . import klanten as KLT
+        KLT.herstel_na_herstart()
+    except Exception as ex:
+        print("Klanten herstarten mislukt:", ex)
 
 
 # Vaste gratis vriendenaccounts die Marcel via Claude laat aanmaken.
@@ -1402,3 +1407,49 @@ async def zaal_start(request: Request, foto: UploadFile = File(...), db=Depends(
     db.commit()
     ZA.start_alles(db, f"{base_url(request)}/media/{m.token}")
     return go("/zaal-maken")
+
+
+# ---------- Voor wie werk je? (klanten van de gebruiker; het hele kantoor werkt mee) ----------
+from . import klanten as KLT
+from .models import Klant
+from urllib.parse import quote as _q
+
+
+@app.get("/klanten", response_class=HTMLResponse)
+def klanten_page(request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    lijst = db.query(Klant).filter(Klant.company_id == c.id).order_by(Klant.id.desc()).all()
+    return render(request, "klanten.html", c, lang, lijst=lijst, doelen=KLT.DOELEN)
+
+
+@app.post("/klanten")
+def klanten_nieuw(request: Request, naam: str = Form(...), website: str = Form(...), doel: str = Form("klanten"),
+                  wens: str = Form(""), db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    if c.is_demo:
+        return go("/aanmelden")
+    k = Klant(company_id=c.id, naam=naam.strip()[:255], website=website.strip()[:255],
+              doel=doel if doel in KLT.DOELEN else "klanten", wens=wens.strip()[:1000], lang=lang)
+    db.add(k)
+    db.commit()
+    KLT.start(k.id)
+    return go(f"/klanten/{k.id}")
+
+
+@app.get("/klanten/{kid}", response_class=HTMLResponse)
+def klant_page(kid: int, request: Request, db=Depends(get_db)):
+    c, lang = company_ctx(request, db)
+    k = db.query(Klant).filter(Klant.id == kid, Klant.company_id == c.id).first()
+    if not k:
+        return go("/klanten")
+    plan = {}
+    try:
+        plan = json.loads(k.plan) if k.plan else {}
+    except ValueError:
+        pass
+    site = k.website if k.website.startswith("http") else "https://" + k.website
+    filmlinks = [f"/video?titel={_q(f.get('titel',''))}&omschrijving={_q(f.get('omschrijving',''))}&winkel={_q(k.naam)}&site={_q(site)}"
+                 for f in plan.get("filmpjes", [])]
+    from . import zaal as ZA
+    return render(request, "klant.html", c, lang, k=k, plan=plan, filmlinks=filmlinks,
+                  clips=ZA.clips(db) if k.status in ("pending", "processing") else [])

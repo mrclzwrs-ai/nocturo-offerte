@@ -507,6 +507,44 @@ TEKSTEN.update({
     "zl_bijna": ["Pling: bijna klaar!", "Pling: almost done!", "Pling: fast fertig!", "Pling : presque fini !", "Pling: ¡casi listo!"],
 })
 
+TEKSTEN.update({
+    "kl_titel": ["Voor wie werk je?", "Who are you working for?", "Für wen arbeiten Sie?", "Pour qui travaillez-vous ?", "¿Para quién trabajas?"],
+    "kl_uitleg": ["Werk je voor een ander bedrijf? Vul het hier in. Het hele team bekijkt de website en maakt een voorstel met filmpjes om het doel te halen.",
+                  "Working for another business? Add it here. The whole team studies the website and prepares a proposal with videos to reach the goal.",
+                  "Arbeiten Sie für ein anderes Unternehmen? Tragen Sie es hier ein. Das ganze Team prüft die Website und macht einen Vorschlag mit Videos.",
+                  "Vous travaillez pour une autre entreprise ? Ajoutez-la ici. Toute l'équipe étudie le site et prépare une proposition avec des vidéos.",
+                  "¿Trabajas para otra empresa? Añádela aquí. Todo el equipo estudia la web y prepara una propuesta con vídeos."],
+    "kl_naam": ["Naam van het bedrijf", "Business name", "Name des Unternehmens", "Nom de l'entreprise", "Nombre de la empresa"],
+    "kl_site": ["Website", "Website", "Website", "Site web", "Sitio web"],
+    "kl_doel": ["Wat wil je bereiken?", "What do you want to achieve?", "Was möchten Sie erreichen?", "Que voulez-vous obtenir ?", "¿Qué quieres conseguir?"],
+    "kl_d_publiek": ["Meer publiek", "More audience", "Mehr Publikum", "Plus de public", "Más público"],
+    "kl_d_klanten": ["Meer klanten", "More customers", "Mehr Kunden", "Plus de clients", "Más clientes"],
+    "kl_d_verkoop": ["Meer verkoop", "More sales", "Mehr Verkauf", "Plus de ventes", "Más ventas"],
+    "kl_d_bekend": ["Bekender worden", "Become better known", "Bekannter werden", "Être plus connu", "Ser más conocido"],
+    "kl_d_anders": ["Iets anders", "Something else", "Etwas anderes", "Autre chose", "Otra cosa"],
+    "kl_wens": ["Nog iets wat het team moet weten? (mag leeg blijven)", "Anything else the team should know? (optional)",
+                "Noch etwas, das das Team wissen sollte? (optional)", "Autre chose que l'équipe doit savoir ? (facultatif)", "¿Algo más que el equipo deba saber? (opcional)"],
+    "kl_start": ["Laat het team aan het werk gaan", "Put the team to work", "Das Team an die Arbeit schicken", "Mettre l'équipe au travail", "Poner al equipo a trabajar"],
+    "kl_mijn": ["Mijn klanten", "My clients", "Meine Kunden", "Mes clients", "Mis clientes"],
+    "kl_bezig": ["Het team bekijkt de website en overlegt… dit duurt een minuutje.", "The team is studying the website and discussing… this takes a minute.",
+                 "Das Team prüft die Website und berät sich… das dauert eine Minute.", "L'équipe étudie le site et se concerte… cela prend une minute.",
+                 "El equipo estudia la web y lo comenta… tarda un minuto."],
+    "kl_b1": ["De Analist: ik lees de website van {n}…", "The Analyst: I'm reading {n}'s website…", "Der Analyst: Ich lese die Website von {n}…", "L'Analyste : je lis le site de {n}…", "El Analista: estoy leyendo la web de {n}…"],
+    "kl_b2": ["De Speurder: ik kijk wie hun klanten zijn en waar we ze vinden…", "The Scout: I'm looking at who their customers are and where to find them…",
+              "Die Spürnase: Ich schaue, wer ihre Kunden sind und wo wir sie finden…", "L'Éclaireur : je regarde qui sont leurs clients et où les trouver…",
+              "El Rastreador: miro quiénes son sus clientes y dónde encontrarlos…"],
+    "kl_b3": ["De Regisseur: ik bedenk alvast filmpjes die daarbij passen…", "The Director: I'm already thinking of videos that fit…",
+              "Der Regisseur: Ich überlege mir schon passende Videos…", "Le Réalisateur : je réfléchis déjà à des vidéos adaptées…", "El Director: ya estoy pensando vídeos que encajen…"],
+    "kl_ontdekt": ["Wat het team ontdekte", "What the team discovered", "Was das Team entdeckt hat", "Ce que l'équipe a découvert", "Lo que descubrió el equipo"],
+    "kl_plan": ["Het plan", "The plan", "Der Plan", "Le plan", "El plan"],
+    "kl_films": ["Filmpjes die we voorstellen", "Videos we suggest", "Vorgeschlagene Videos", "Vidéos proposées", "Vídeos que proponemos"],
+    "kl_maak": ["Maak dit filmpje", "Make this video", "Dieses Video erstellen", "Créer cette vidéo", "Crear este vídeo"],
+    "kl_voorstel": ["Voorstel om naar je klant te sturen", "Proposal to send to your client", "Vorschlag für Ihren Kunden", "Proposition à envoyer à votre client", "Propuesta para enviar a tu cliente"],
+    "kl_kopieer": ["Kopieer de tekst", "Copy the text", "Text kopieren", "Copier le texte", "Copiar el texto"],
+    "kl_mislukt": ["Dat lukte niet: de website kon niet goed gelezen worden.", "That didn't work: the website could not be read properly.",
+                   "Das hat nicht geklappt: Die Website konnte nicht gelesen werden.", "Cela n'a pas marché : le site n'a pas pu être lu.", "No ha funcionado: no se pudo leer la web."],
+})
+
 def k(key: str, lang: str, **kw) -> str:
     vals = TEKSTEN.get(key)
     if not vals:
