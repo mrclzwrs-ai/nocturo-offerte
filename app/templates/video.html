@@ -28,6 +28,20 @@
   <h2>{{ K('v_new') }}</h2>
   {% if over > 0 %}
   <form method="post" action="/video/nieuw" enctype="multipart/form-data">
+    <div class="veld"><label style="font-size:18px;font-weight:700">{{ K('v_soort_vraag') }}</label>
+      <div class="stemkeus">
+        <label class="muz"><input type="radio" name="soort" value="gewoon" checked><span><b>{{ K('v_gewoon') }}</b><small>{{ K('v_gewoon_uitleg') }}</small></span></label>
+        <label class="muz" {% if over < echt_kost %}style="opacity:.5"{% endif %}><input type="radio" name="soort" value="echt" {{ 'disabled' if over < echt_kost }}><span><b>{{ K('v_echt') }}</b><small>{{ K('v_echt_uitleg', n=echt_kost) }}</small>{% if over < echt_kost %}<small>{{ K('v_echt_te_weinig', n=echt_kost) }}</small>{% endif %}</span></label>
+      </div>
+    </div>
+    <div class="veld" id="bewegingveld" style="display:none"><label>{{ K('v_beweging') }}</label>
+      <textarea name="beweging" rows="2" maxlength="600"></textarea>
+      <div class="hint">{{ K('v_beweging_uitleg') }}</div>
+    </div>
+    <script>
+    (function(){var v=document.getElementById('bewegingveld');document.querySelectorAll('input[name=soort]').forEach(function(r){
+      r.addEventListener('change',function(){v.style.display=(document.querySelector('input[name=soort]:checked').value==='echt')?'':'none';});});})();
+    </script>
     <div class="rij2">
       <div class="veld"><label>{{ K('v_title') }}</label><input name="title" required maxlength="120" value="{{ vooraf.titel if vooraf }}"></div>
       <div class="veld"><label>{{ K('v_price') }}</label><input name="price" inputmode="decimal"></div>
@@ -42,20 +56,7 @@
       <div class="veld"><label>{{ K('v_lang') }}</label>
         <select name="vlang">{% for l in langs %}<option value="{{ l }}" {{ 'selected' if l == lang }}>{{ lang_names[l] }}</option>{% endfor %}</select></div>
     </div>
-    <div class="veld"><label>{{ K('v_soort') }}</label>
-      <div class="stemkeus">
-        <label class="muz"><input type="radio" name="soort" value="gewoon" checked><span><b>{{ K('v_gewoon') }}</b><small>{{ K('v_gewoon_uitleg') }}</small></span></label>
-        <label class="muz" {% if over < echt_kost %}style="opacity:.5"{% endif %}><input type="radio" name="soort" value="echt" {{ 'disabled' if over < echt_kost }}><span><b>{{ K('v_echt') }}</b><small>{{ K('v_echt_uitleg', n=echt_kost) }}</small>{% if over < echt_kost %}<small>{{ K('v_echt_te_weinig', n=echt_kost) }}</small>{% endif %}</span></label>
-      </div>
-    </div>
-    <div class="veld" id="bewegingveld" style="display:none"><label>{{ K('v_beweging') }}</label>
-      <textarea name="beweging" rows="2" maxlength="600"></textarea>
-      <div class="hint">{{ K('v_beweging_uitleg') }}</div>
-    </div>
-    <script>
-    (function(){var v=document.getElementById('bewegingveld');document.querySelectorAll('input[name=soort]').forEach(function(r){
-      r.addEventListener('change',function(){v.style.display=(document.querySelector('input[name=soort]:checked').value==='echt')?'':'none';});});})();
-    </script>
+
     <div class="veld"><label>{{ K('v_style') }}</label>
       <div class="stijlkeus">
         {% for key in ['foto', 'luxe', 'licht'] %}

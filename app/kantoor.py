@@ -435,6 +435,8 @@ TEKSTEN.update({
 })
 
 TEKSTEN.update({
+    "v_soort_vraag": ["1. Wat voor filmpje wil je?", "1. What kind of video do you want?", "1. Was für ein Video möchten Sie?",
+                      "1. Quel type de vidéo voulez-vous ?", "1. ¿Qué tipo de vídeo quieres?"],
     "v_soort": ["Soort filmpje", "Type of video", "Art des Videos", "Type de vidéo", "Tipo de vídeo"],
     "v_gewoon": ["Gewoon filmpje", "Standard video", "Standard-Video", "Vidéo standard", "Vídeo estándar"],
     "v_gewoon_uitleg": ["Je foto's met mooie overgangen · kost 1 filmpje", "Your photos with smooth transitions · costs 1 video",
