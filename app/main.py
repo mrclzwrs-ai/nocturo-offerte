@@ -566,7 +566,7 @@ def _zaal_info(db, videos, lang):
         zeg.append(("video", K.k("zl_beweeg", lang)))
     if v.render_id:
         zeg.append(("video", K.k("zl_monteer", lang)))
-        zeg.append(("offerte", K.k("zl_bijna", lang)))
+        zeg.append(("pling", K.k("zl_bijna", lang)))
     return {"clips": ZA.clips(db), "zeg": zeg}
 
 
@@ -1381,10 +1381,10 @@ def zaal_page(request: Request, db=Depends(get_db)):
 {ververs}<title>Vergaderkamer maken</title></head>
 <body style="font-family:-apple-system,system-ui,sans-serif;max-width:1000px;margin:24px auto;padding:0 16px;background:#F7F4EE">
 <h1>De vergaderkamer</h1>
-<p>Kies de foto van de vergaderkamer met de vijf robots. De server maakt er 7 korte scènes van (± $1,75). Deze pagina ververst zichzelf tot alles klaar is; dat duurt meestal 5 à 10 minuten.</p>
+<p>Kies de foto van de vergaderkamer met de vijf robots. De server maakt er 8 korte scènes van (± $2). Deze pagina ververst zichzelf tot alles klaar is; dat duurt meestal 5 à 10 minuten.</p>
 <form method="post" action="/zaal-maken" enctype="multipart/form-data" style="background:#fff;padding:16px;border-radius:12px">
 <p><input type="file" name="foto" accept="image/*" required style="font-size:18px"></p>
-<p><button type="submit" style="font-size:20px;padding:12px 24px;border-radius:10px;background:#18A58C;color:#fff;border:0">Maak de 7 scènes</button></p>
+<p><button type="submit" style="font-size:20px;padding:12px 24px;border-radius:10px;background:#18A58C;color:#fff;border:0">Maak de 8 scènes</button></p>
 </form>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:18px">{rijen}</div>
 <p><a href="/beheer">← terug naar beheer</a></p></body></html>""")
