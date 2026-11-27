@@ -6,6 +6,7 @@
   <div><h2>Nocturo</h2><h1>Video Ads</h1></div>
   <div class="mono kt-teller">{{ K('v_left' if actief else 'v_left_trial', n=over, m=limiet) }}</div>
 </div>
+{% set rk = 'video' %}{% include "_robot.html" %}
 
 {% if not va_klaar %}<div class="melding fout">{{ K('v_not_ready') }}</div>{% endif %}
 

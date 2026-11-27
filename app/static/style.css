@@ -272,3 +272,11 @@ svg.uil{display:block;overflow:visible}
 .hl-tekst .tip{opacity:.8;font-style:italic}
 .hl-tekst blockquote{margin:8px 0;padding:10px 14px;border-left:3px solid var(--turq);background:rgba(127,127,127,.08);border-radius:6px;user-select:all}
 .hl-tekst a{word-break:break-all}
+.kt-robot{display:flex;gap:14px;align-items:center;background:var(--paneel);border:1px solid var(--lijn);border-radius:12px;padding:12px 16px;margin:0 0 18px}
+.kt-robot img{width:72px;height:72px;border-radius:50%;object-fit:cover;flex:none;border:2px solid var(--turq)}
+.kt-robot b{font-size:15px}.kt-robot p{margin:2px 0 0;color:var(--grijs);font-size:14px;line-height:1.5}
+.kt-app .kt-wie{display:flex;align-items:center;gap:10px}
+.kt-app .kt-wie img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--lijn)}
+.kt-app.aan .kt-wie img{border-color:var(--turq)}
+.kt-app .kt-wie span{font-size:13px;color:var(--grijs)}
+.kt-cr .kt-wie img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--turq);margin-right:6px;vertical-align:middle}

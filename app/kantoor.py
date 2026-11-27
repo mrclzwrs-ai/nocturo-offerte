@@ -351,6 +351,40 @@ TEKSTEN.update({
 _IDX = {"nl": 0, "en": 1, "de": 2, "fr": 3, "es": 4}
 
 
+# Robots: elke app heeft zijn eigen collega (zelfde robots als in de promofilm)
+TEKSTEN.update({
+    "rb_n_search": ["De Speurder", "The Scout", "Die Spürnase", "L'Éclaireur", "El Rastreador"],
+    "rb_n_check": ["De Analist", "The Analyst", "Der Analyst", "L'Analyste", "El Analista"],
+    "rb_n_video": ["De Regisseur", "The Director", "Der Regisseur", "Le Réalisateur", "El Director"],
+    "rb_n_offerte": ["De Boekhouder", "The Bookkeeper", "Der Buchhalter", "Le Comptable", "El Contable"],
+    "rb_n_pling": ["Pling", "Pling", "Pling", "Pling", "Pling"],
+    "rb_hi_search": ["Hoi, ik ben de Speurder. Ik zoek bedrijven die bij jou passen en schrijf ze een persoonlijke brief.",
+                     "Hi, I'm the Scout. I find businesses that suit you and write them a personal letter.",
+                     "Hallo, ich bin die Spürnase. Ich finde passende Unternehmen und schreibe ihnen einen persönlichen Brief.",
+                     "Bonjour, je suis l'Éclaireur. Je trouve des entreprises qui vous correspondent et je leur écris une lettre personnelle.",
+                     "Hola, soy el Rastreador. Busco empresas que encajan contigo y les escribo una carta personal."],
+    "rb_hi_check": ["Hoi, ik ben de Analist. Geef me een website, dan bekijk ik hem door de ogen van een klant.",
+                    "Hi, I'm the Analyst. Give me a website and I'll look at it through the eyes of a customer.",
+                    "Hallo, ich bin der Analyst. Geben Sie mir eine Website, dann schaue ich sie mit den Augen eines Kunden an.",
+                    "Bonjour, je suis l'Analyste. Donnez-moi un site, je le regarde avec les yeux d'un client.",
+                    "Hola, soy el Analista. Dame una web y la miro con los ojos de un cliente."],
+    "rb_hi_video": ["Hoi, ik ben de Regisseur. Vertel me over je product, dan maak ik er een filmpje van.",
+                    "Hi, I'm the Director. Tell me about your product and I'll turn it into a video.",
+                    "Hallo, ich bin der Regisseur. Erzählen Sie mir von Ihrem Produkt, dann mache ich ein Video daraus.",
+                    "Bonjour, je suis le Réalisateur. Parlez-moi de votre produit, j'en fais une vidéo.",
+                    "Hola, soy el Director. Cuéntame de tu producto y hago un vídeo con él."],
+    "rb_hi_offerte": ["Hoi, ik ben de Boekhouder. Vertel me wat je klant wil, dan maak ik er een nette offerte van.",
+                      "Hi, I'm the Bookkeeper. Tell me what your customer wants and I'll make a neat quote.",
+                      "Hallo, ich bin der Buchhalter. Sagen Sie mir, was Ihr Kunde möchte, dann mache ich ein sauberes Angebot.",
+                      "Bonjour, je suis le Comptable. Dites-moi ce que veut votre client, j'en fais un devis soigné.",
+                      "Hola, soy el Contable. Dime qué quiere tu cliente y hago un presupuesto bien hecho."],
+    "rb_hi_pling": ["Hoi, ik ben Pling. Ik breng jouw aanbiedingen bij mensen in de buurt.",
+                    "Hi, I'm Pling. I bring your deals to people nearby.",
+                    "Hallo, ich bin Pling. Ich bringe Ihre Angebote zu Menschen in der Nähe.",
+                    "Bonjour, je suis Pling. J'apporte vos offres aux gens du quartier.",
+                    "Hola, soy Pling. Llevo tus ofertas a la gente de tu barrio."],
+})
+
 def k(key: str, lang: str, **kw) -> str:
     vals = TEKSTEN.get(key)
     if not vals:

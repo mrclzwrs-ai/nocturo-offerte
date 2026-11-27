@@ -6,6 +6,7 @@
   <div><h2>Nocturo</h2><h1>Search &amp; Analyze</h1></div>
   <div class="mono kt-teller">{{ K('s_sent_total', n=totaal) }}{% if p.laatste_ronde %} · {{ K('s_last', d=DATE(p.laatste_ronde)) }}{% endif %}</div>
 </div>
+{% set rk = 'search' %}{% include "_robot.html" %}
 
 {% if bezig %}<div class="melding">{{ K('s_running') }}</div>{% endif %}
 {% if p.melding %}<div class="melding fout">{{ p.melding }}</div>{% endif %}

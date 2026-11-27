@@ -9,6 +9,7 @@
   <a class="knop groot" href="/nieuw">+ {{ T('nav_new') }}</a>
 </div>
 
+{% set rk = 'offerte' %}{% include "_robot.html" %}
 <div class="tegels">
   <div class="tegel"><div class="l">{{ T('open_quotes') }}</div><div class="w">{{ stats.open_n }}</div></div>
   <div class="tegel"><div class="l">{{ T('open_value') }}</div><div class="w">{{ MONEY(stats.open_value) }}</div></div>

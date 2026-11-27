@@ -12,7 +12,7 @@
 {% if c.doelgroep == 'b2c' %}
 <section class="paneel kt-cr">
   <div>
-    <h2>{{ K('wc_naam') }}</h2>
+    <h2><span class="kt-wie"><img src="/static/robots/check.webp" alt="" width="52" height="52"></span>{{ K('wc_naam') }}</h2>
     <p>{{ K('wc_kort') }} <span class="hint">({{ K('wc_inbegrepen') }})</span></p>
   </div>
   <a class="knop" href="/check">{{ K('open') }}</a>
@@ -26,7 +26,7 @@
     <div class="kt-st st-{{ a.status }}"><i></i>
       {% if a.status == 'proef' %}{{ K('st_proef', d=dagen if dagen is not none else 0) }}{% else %}{{ K('st_' ~ a.status) }}{% endif %}
     </div>
-    <h3>{{ a.name }}</h3>
+    <div class="kt-wie"><img src="/static/robots/{{ a.key }}.webp" alt="" width="52" height="52"><div><h3>{{ a.name }}</h3>{% if a.key != 'pling' %}<span>{{ K('rb_n_' ~ a.key) }}</span>{% endif %}</div></div>
     <p>{{ K('desc_' ~ a.key) }}</p>
     <div class="mono kt-prijs">
       {% if a.key == 'pling' %}{{ K('pling_price', p=MONEY(a.price)) }}
