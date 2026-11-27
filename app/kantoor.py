@@ -504,7 +504,7 @@ TEKSTEN.update({
     "zl_monteer": ["De Regisseur: ik monteer het filmpje met stem en muziek…", "The Director: I'm editing the video with voice and music…",
                    "Der Regisseur: Ich schneide das Video mit Stimme und Musik…", "Le Réalisateur : je monte la vidéo avec voix et musique…",
                    "El Director: estoy montando el vídeo con voz y música…"],
-    "zl_bijna": ["Pling: bijna klaar!", "Pling: almost done!", "Pling: fast fertig!", "Pling : presque fini !", "Pling: ¡casi listo!"],
+    "zl_bijna": ["De Boekhouder: bijna klaar!", "The Bookkeeper: almost done!", "Der Buchhalter: fast fertig!", "Le Comptable : presque fini !", "El Contable: ¡casi listo!"],
 })
 
 def k(key: str, lang: str, **kw) -> str:

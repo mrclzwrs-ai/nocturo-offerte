@@ -14,7 +14,6 @@ SCENES = [
     ("overleg", "The robots chat lively with each other around the table, gesturing with their hands and nodding, as in a friendly team meeting."),
     ("speurder", "The green robot on the left raises its binoculars and looks out of the window, then turns back to the table with a happy discovery."),
     ("regisseur", "The orange robot with the camera head turns its lens across the table as if filming, and gestures like a film director giving directions."),
-    ("pling", "The small yellow robot in the middle rings the bell on its head with a little bounce and waves cheerfully."),
     ("analist", "The blue robot studies the clipboard through its magnifying glass, nods slowly and points at something on the paper."),
     ("boekhouder", "The golden robot with the bow tie writes notes with its pencil, then looks up and smiles contentedly."),
     ("koffie", "The robots pick up their coffee mugs and take a sip together; steam rises gently from the mugs. Relaxed, cozy moment."),
