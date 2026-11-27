@@ -216,6 +216,14 @@ def pdf_name(q: Quote) -> str:
 
 
 # ---------- algemeen ----------
+@app.get("/sw.js")
+def service_worker():
+    """Kleine service worker zodat het kantoor als app op het beginscherm kan (Android/Chrome)."""
+    js = "self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());" \
+         "self.addEventListener('fetch',()=>{});"
+    return Response(js, media_type="application/javascript", headers={"Cache-Control": "no-cache"})
+
+
 @app.get("/health")
 def health():
     return {"ok": True}

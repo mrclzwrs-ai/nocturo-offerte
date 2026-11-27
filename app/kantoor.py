@@ -470,6 +470,24 @@ TEKSTEN.update({
                     "Dando vida a tus fotos… tarda unos minutos."],
 })
 
+TEKSTEN.update({
+    "ps_titel": ["Zet je Control Room op je beginscherm", "Put your Control Room on your home screen",
+                 "Legen Sie Ihren Control Room auf den Startbildschirm", "Mettez votre Control Room sur l'écran d'accueil",
+                 "Pon tu Control Room en la pantalla de inicio"],
+    "ps_ios": ["Dan heb je je kantoor altijd bij de hand, met de uil als icoontje. Tik onderin of bovenin op het deel-knopje (vierkantje met pijltje omhoog) en kies \"Zet op beginscherm\".",
+               "Then your office is always at hand, with the owl as its icon. Tap the share button (square with an arrow up) and choose \"Add to Home Screen\".",
+               "Dann haben Sie Ihr Büro immer griffbereit, mit der Eule als Symbol. Tippen Sie auf Teilen (Quadrat mit Pfeil nach oben) und wählen Sie \"Zum Home-Bildschirm\".",
+               "Votre bureau sera toujours à portée de main, avec la chouette comme icône. Touchez Partager (carré avec une flèche) puis \"Sur l'écran d'accueil\".",
+               "Así tienes tu oficina siempre a mano, con el búho como icono. Toca Compartir (cuadrado con flecha hacia arriba) y elige \"Añadir a pantalla de inicio\"."],
+    "ps_android": ["Dan heb je je kantoor altijd bij de hand, met de uil als icoontje. Eén tik is genoeg.",
+                   "Then your office is always at hand, with the owl as its icon. One tap is all it takes.",
+                   "Dann haben Sie Ihr Büro immer griffbereit, mit der Eule als Symbol. Ein Tipp genügt.",
+                   "Votre bureau sera toujours à portée de main, avec la chouette comme icône. Un seul toucher suffit.",
+                   "Así tienes tu oficina siempre a mano, con el búho como icono. Basta con un toque."],
+    "ps_knop": ["Op mijn beginscherm zetten", "Add to my home screen", "Auf meinen Startbildschirm", "Ajouter à mon écran d'accueil", "Añadir a mi pantalla de inicio"],
+    "ps_weg": ["Niet meer tonen", "Don't show again", "Nicht mehr anzeigen", "Ne plus afficher", "No volver a mostrar"],
+})
+
 def k(key: str, lang: str, **kw) -> str:
     vals = TEKSTEN.get(key)
     if not vals:

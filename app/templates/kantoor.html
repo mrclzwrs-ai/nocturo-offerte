@@ -3,11 +3,37 @@
 {% block content %}
 <div class="kt-kop">
   <div>
-    <h2>{{ K('office') }}</h2>
+    <h2>Nocturo Control Room · Your wingman in sales</h2>
     <h1>{{ K('office_title') }}</h1>
   </div>
   <div class="mono kt-teller">{{ K('apps_active', n=actief, m=kaarten|length) }}</div>
 </div>
+<section class="paneel" id="opscherm" style="display:none;align-items:center;gap:16px">
+  <img src="/static/apple-touch-icon.png" alt="" width="64" height="64" style="border-radius:14px;flex:none">
+  <div style="flex:1">
+    <h2 style="margin:0 0 4px">{{ K('ps_titel') }}</h2>
+    <p style="margin:0" id="ps-ios">{{ K('ps_ios') }}</p>
+    <p style="margin:0;display:none" id="ps-and">{{ K('ps_android') }}</p>
+    <button class="knop" id="ps-knop" style="display:none;margin-top:10px">{{ K('ps_knop') }}</button>
+  </div>
+  <button class="knop lijn" id="ps-weg" aria-label="{{ K('ps_weg') }}" style="flex:none">✕</button>
+</section>
+<script>
+(function(){
+  var blok=document.getElementById('opscherm'), knop=document.getElementById('ps-knop'), vraag=null;
+  var app=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone;
+  var weg=false; try{weg=localStorage.getItem('nocturo_ps_weg')==='1';}catch(e){}
+  if('serviceWorker' in navigator){try{navigator.serviceWorker.register('/sw.js');}catch(e){}}
+  if(app||weg) return;
+  var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(ios){blok.style.display='flex';}
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();vraag=e;
+    document.getElementById('ps-ios').style.display='none';document.getElementById('ps-and').style.display='';
+    knop.style.display='';blok.style.display='flex';});
+  knop.addEventListener('click',function(){if(vraag){vraag.prompt();vraag=null;blok.style.display='none';}});
+  document.getElementById('ps-weg').addEventListener('click',function(){blok.style.display='none';try{localStorage.setItem('nocturo_ps_weg','1');}catch(e){}});
+})();
+</script>
 {% if c.doelgroep %}<p class="hint">{{ K('dg_nu', w=K('dg_w_' ~ c.doelgroep)) }} · <a href="/kantoor/doelgroep">{{ K('dg_wijzig') }}</a></p>{% endif %}
 {% if c.doelgroep == 'b2c' %}
 <section class="paneel kt-cr">
