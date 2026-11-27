@@ -7,6 +7,7 @@
   <div class="mono kt-teller">{{ K('v_left' if actief else 'v_left_trial', n=over, m=limiet) }}</div>
 </div>
 {% set rk = 'video' %}{% include "_robot.html" %}
+{% if over <= 0 %}
 {% if actief and not c.is_demo %}
   {% if plus %}<p class="hint">{{ K('v_plus_aan') }}</p>
   {% else %}
@@ -20,6 +21,7 @@
     <p class="hint">{{ K('v_meer_hint') }}</p>
   </section>
   {% endif %}
+{% endif %}
 {% endif %}
 
 {% if not va_klaar %}<div class="melding fout">{{ K('v_not_ready') }}</div>{% endif %}
@@ -112,5 +114,21 @@
   {% endfor %}
   </div>
 </section>
+{% if over > 0 %}
+{% if actief and not c.is_demo %}
+  {% if plus %}<p class="hint">{{ K('v_plus_aan') }}</p>
+  {% else %}
+  <section class="paneel kt-meer {{ 'op' if over <= 0 }}">
+    <h2>{{ K('v_op_t') if over <= 0 else K('v_meer_t') }}</h2>
+    <div class="kt-meer-knoppen">
+      <form method="post" action="/video/extra"><button class="knop lijn">{{ K('v_extra_btn') }}</button></form>
+      {% if plus_aangevraagd %}<span class="kt-noot">{{ K('v_plus_wacht') }}</span>
+      {% else %}<form method="post" action="/kantoor/huur/videoplus"><button class="knop oranjevol">{{ K('v_plus_btn') }}</button></form>{% endif %}
+    </div>
+    <p class="hint">{{ K('v_meer_hint') }}</p>
+  </section>
+  {% endif %}
+{% endif %}
+{% endif %}
 {% endblock %}
 {% block scripts %}{% if bezig %}<script>setTimeout(function(){location.reload()},10000);</script>{% endif %}{% endblock %}
