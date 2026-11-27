@@ -1237,3 +1237,69 @@ def admin_action(cid: int, request: Request, action: str = Form(...), db=Depends
             sub.updated_at = now
     db.commit()
     return go("/beheer")
+
+
+# ---------- Echte video: proef met Kling via fal.ai (alleen Marcel) ----------
+from html import escape as _esc
+from . import kling as KL
+
+KLING_TESTS: list[dict] = []   # alleen in het geheugen; na een herstart weg (het is een proef)
+
+
+@app.get("/beheer/kling", response_class=HTMLResponse)
+def kling_page(request: Request, db=Depends(get_db)):
+    need_admin(request, db)
+    for t_ in KLING_TESTS:
+        for job in t_["jobs"].values():
+            KL.stand(job)
+    bezig = any(j.get("status") not in ("klaar", "mislukt") for t_ in KLING_TESTS for j in t_["jobs"].values())
+    rijen = ""
+    for t_ in reversed(KLING_TESTS):
+        cellen = ""
+        for key, job in t_["jobs"].items():
+            m = KL.MODELLEN[key]
+            if job.get("status") == "klaar":
+                inhoud = (f'<video src="{_esc(job["url"])}" controls playsinline loop style="width:100%;border-radius:8px"></video>'
+                          f'<p>Klaar in {job.get("duur", "?")} sec</p>')
+            elif job.get("status") == "mislukt":
+                inhoud = f'<p style="color:#b00">Mislukt: {_esc(job.get("fout", ""))}</p>'
+            else:
+                inhoud = "<p>⏳ Bezig… (duurt meestal 1 à 3 minuten)</p>"
+            cellen += (f'<div style="flex:1;min-width:260px"><h3>{m["naam"]}</h3><p style="color:#666">{m["prijs"]}</p>'
+                       f'{inhoud}</div>')
+        rijen += (f'<div style="border:1px solid #ddd;border-radius:12px;padding:16px;margin:16px 0">'
+                  f'<img src="{_esc(t_["foto"])}" style="max-height:140px;border-radius:8px"><div style="display:flex;gap:16px;flex-wrap:wrap">{cellen}</div></div>')
+    melding = "" if KL.klaar() else '<p style="color:#b00">FAL_KEY ontbreekt op de server.</p>'
+    ververs = '<meta http-equiv="refresh" content="15">' if bezig else ""
+    return HTMLResponse(f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+{ververs}<title>Echte video – proef</title></head>
+<body style="font-family:-apple-system,system-ui,sans-serif;max-width:900px;margin:24px auto;padding:0 16px">
+<h1>Echte video – proef</h1>
+<p>Kies één productfoto. Er worden twee bewegende shots van 5 seconden gemaakt: met Kling Pro en met Kling Standard.
+Deze pagina ververst zichzelf tot ze klaar zijn.</p>{melding}
+<form method="post" action="/beheer/kling" enctype="multipart/form-data" style="background:#f5f5f7;padding:16px;border-radius:12px">
+<p><input type="file" name="foto" accept="image/*" required style="font-size:18px"></p>
+<p><button type="submit" style="font-size:20px;padding:12px 24px;border-radius:10px;background:#111;color:#fff;border:0">Maak de twee shots</button></p>
+</form>{rijen}<p><a href="/beheer">← terug naar beheer</a></p></body></html>""")
+
+
+@app.post("/beheer/kling")
+async def kling_start(request: Request, foto: UploadFile = File(...), db=Depends(get_db)):
+    c = need_admin(request, db)
+    data = await foto.read()
+    mime = (foto.content_type or "").lower()
+    if not KL.klaar() or not mime.startswith("image/") or not data or len(data) > 8 * 1024 * 1024:
+        return go("/beheer/kling")
+    m = Media(company_id=c.id, mime=mime, data=data)
+    db.add(m)
+    db.commit()
+    url = f"{base_url(request)}/media/{m.token}"
+    jobs = {}
+    for key in KL.MODELLEN:
+        try:
+            jobs[key] = KL.start(key, url)
+        except Exception as ex:
+            print("Kling-proef mislukt:", ex)
+            jobs[key] = {"status": "mislukt", "fout": str(ex)[:300]}
+    KLING_TESTS.append({"foto": url, "jobs": jobs})
+    return go("/beheer/kling")
