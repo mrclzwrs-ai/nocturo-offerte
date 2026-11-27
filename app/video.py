@@ -32,6 +32,10 @@ VOICE_IDS = {
 CTA = {"nl": "Bestel nu bij ", "en": "Shop now at ", "de": "Jetzt bestellen bei ",
        "fr": "Commandez sur ", "es": "Pide ahora en "}
 SLOGANS = ["Op is op!", "Wacht niet te lang!", "Mis het niet!", "Snel zijn is de boodschap!"]
+# Voor diensten (reading, behandeling, cursus, reparatie...): niets dat 'op' kan raken
+DIENST_SLOGANS = ["Boek vandaag nog!", "Wacht niet te lang!", "Maak nu je afspraak!"]
+CTA_DIENST = {"nl": "Boek nu bij ", "en": "Book now at ", "de": "Jetzt buchen bei ",
+              "fr": "Réservez chez ", "es": "Reserva ya en "}
 NOODTEKST = {
     "nl": "{title}. En dat voor een scherpe prijs. Bestel nu bij ons. Mis het niet!",
     "en": "{title}. And all for a great price. Order now from us. Don't miss out!",
@@ -109,22 +113,28 @@ def lengte_voor(description: str) -> tuple[int, int]:
     return 30, 75
 
 
-def schrijf_voiceover(title, description, lang) -> str:
+def schrijf_voiceover(title, description, lang) -> tuple[str, bool]:
+    """Geeft (tekst, is_dienst)."""
     from .ai import _client, MODEL
     slogan = random.choice(SLOGANS)
+    dienst_slogan = random.choice(DIENST_SLOGANS)
     sec, woorden = lengte_voor(description)
     prompt = f"""Schrijf een enthousiaste voice-overtekst voor een verkoopvideo van maximaal {sec} seconden (maximaal {woorden} woorden) over dit product. Gebruik de ruimte alleen als de omschrijving genoeg echte informatie geeft; is er weinig informatie, houd de tekst dan kort.
 Taal van de tekst: {lang} (nl = Nederlands, en = Engels, de = Duits, fr = Frans, es = Spaans).
 Product: {title}
 Omschrijving: {description}
-Slotkreet: {slogan}
+Slotkreet bij een product: {slogan}
+Slotkreet bij een dienst: {dienst_slogan}
+
+Bepaal eerst of het een PRODUCT is (iets dat je koopt en meeneemt, kan uitverkocht raken) of een DIENST (iets dat iemand voor je doet of een afspraak: reading, behandeling, les, cursus, reparatie, advies, knipbeurt).
+Zet op de allereerste regel alleen het woord PRODUCT of DIENST. Daaronder de voice-overtekst.
 
 Regels:
 1. Noem GEEN prijs en GEEN getallen of bedragen. De prijs staat al in beeld. Zeg in plaats daarvan iets als 'en dat voor een scherpe prijs' in de taal van de tekst.
 2. Gebruik alleen eigenschappen die in de productnaam of omschrijving staan. Verzin geen eigenschappen, beloftes over levering, garantie of kortingen.
 3. Geen emoji's, geen hashtags, geen aanhalingstekens en geen gedachtestreepjes.
-4. Eindig met een korte oproep om te bestellen, alsof de winkel zelf praat. Noem NOOIT de naam van de winkel of het webadres, maar zeg 'bij ons' in de taal van de tekst. Zeg nooit 'link in bio'.
-5. Sluit af met de slotkreet hierboven; is de tekst niet Nederlands, vertaal de kreet dan naar een natuurlijke kreet in die taal.
+4. Eindig met een korte oproep om te bestellen (product) of te boeken (dienst), alsof de winkel zelf praat. Noem NOOIT de naam van de winkel of het webadres, maar zeg 'bij ons' in de taal van de tekst. Zeg nooit 'link in bio'.
+5. Sluit af met de slotkreet die bij het soort hoort; zeg bij een dienst nooit iets als 'op is op' of 'zolang de voorraad strekt'; is de tekst niet Nederlands, vertaal de kreet dan naar een natuurlijke kreet in die taal.
 Geef alleen de tekst terug."""
     from .methode import met_methode
     systeem = met_methode("Je schrijft korte voice-overteksten voor reclamefilmpjes. De regels in de opdracht gaan altijd voor.",
@@ -135,13 +145,17 @@ Geef alleen de tekst terug."""
                                      messages=[{"role": "user", "content": prompt}])
         tekst = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text").strip()
         if tekst:
-            return tekst
+            eerste, _, rest = tekst.partition("\n")
+            soort = eerste.strip().strip(".:").upper()
+            if soort in ("PRODUCT", "DIENST") and rest.strip():
+                return rest.strip(), soort == "DIENST"
+            return tekst, False
         soorten = [getattr(b, "type", "?") for b in msg.content]
         print(f"Voice-over leeg (poging {poging}): stop_reason={getattr(msg, 'stop_reason', '?')}, "
               f"blokken={soorten}, model={MODEL}")
     # Noodtekst, zodat de klant altijd een filmpje krijgt (alleen de productnaam, niets verzonnen).
     print("Voice-over: noodtekst gebruikt")
-    return NOODTEKST.get(lang, NOODTEKST["nl"]).format(title=title)
+    return NOODTEKST.get(lang, NOODTEKST["nl"]).format(title=title), False
 
 
 def _start(video_id: int, base_url: str, shop_name: str, website: str):
@@ -153,7 +167,7 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
             v.status = "processing"
             db.commit()
             lang = v.lang if v.lang in VOICE_IDS else "nl"
-            v.voiceover = schrijf_voiceover(v.title, v.description, lang)
+            v.voiceover, dienst = schrijf_voiceover(v.title, v.description, lang)
             if not v.voiceover:
                 raise RuntimeError("Geen voice-overtekst")
             fotos = [f"{base_url}/media/{t}" for t in v.media_tokens.split(",") if t]
@@ -169,7 +183,7 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
                     "product_image.source": f1, "image_2.source": f2, "image_3.source": f3, "image_4.source": f4,
                     "voiceover_audio.source": v.voiceover,
                     "voiceover_audio.provider": f"elevenlabs model_id=eleven_turbo_v2_5 voice_id={VOICE_IDS[lang]} language_code={lang}",
-                    "website.text": re.sub(r"^https?://(www\.)?", "", (website or shop_name)).rstrip("/"), "cta.text": f"{CTA[lang]}{shop_name}",
+                    "website.text": re.sub(r"^https?://(www\.)?", "", (website or shop_name)).rstrip("/"), "cta.text": f"{(CTA_DIENST if dienst else CTA)[lang]}{shop_name}",
                     "music.source": f"{base_url}/static/muziek/{kies_muziek(getattr(v, 'muziek', '') or '', getattr(v, 'stijl', '') or STANDAARD_STIJL)}.mp3"}})
             if r.status_code >= 300:
                 raise RuntimeError(f"Creatomate {r.status_code}: {r.text[:200]}")
