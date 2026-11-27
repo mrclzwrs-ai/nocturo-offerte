@@ -1453,3 +1453,21 @@ def klant_page(kid: int, request: Request, db=Depends(get_db)):
     from . import zaal as ZA
     return render(request, "klant.html", c, lang, k=k, plan=plan, filmlinks=filmlinks,
                   clips=ZA.clips(db) if k.status in ("pending", "processing") else [])
+
+
+@app.get("/zaal-film/{n}")
+def zaal_film(n: int, request: Request, db=Depends(get_db)):
+    """Openbaar: robotfilmpje nummer n uit de vergaderkamer (voor de website)."""
+    from . import zaal as ZA
+    lijst = ZA.clips(db)
+    if not lijst:
+        raise HTTPException(404)
+    resp = media(lijst[n % len(lijst)], request, db)
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
+@app.get("/zaal-aantal")
+def zaal_aantal(db=Depends(get_db)):
+    from . import zaal as ZA
+    return JSONResponse({"n": len(ZA.clips(db))}, headers={"Access-Control-Allow-Origin": "*"})
