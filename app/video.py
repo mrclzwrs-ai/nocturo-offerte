@@ -171,6 +171,42 @@ Geef alleen de tekst terug."""
     return NOODTEKST.get(lang, NOODTEKST["nl"]).format(title=title), False
 
 
+def beweging_prompts(title: str, description: str, fotos: list) -> list:
+    """Echte video: Claude bekijkt elke foto en bedenkt welke beweging bij dit product past.
+    fotos = lijst van (mime, bytes). Geeft per foto een Engelse opdracht voor Kling; bij een fout de vaste opdracht."""
+    import base64
+    from . import kling as KL
+    uit = []
+    try:
+        from .ai import _client, MODEL
+        client = _client()
+    except Exception as ex:
+        print("Beweging: geen Claude:", ex)
+        return [KL.PROMPT_ECHT for _ in fotos]
+    vraag = f"""This photo will be turned into a 5-second cinematic product video (image-to-video AI).
+Product: {title}
+Description: {description}
+
+Write ONE short English instruction (max 60 words) describing natural, eye-catching motion that fits THIS product in THIS photo.
+Think of what would really move: steam rising from a hot drink, liquid gently shimmering or pouring, spices or crumbs softly falling,
+fabric moving in a light breeze, water droplets, sparkles on jewellery, leaves swaying, light sweeping over metal or glass.
+Rules: the product itself must stay exactly the same shape, colour, text and logo. The camera stays in front of the product
+and moves only slowly (gentle push-in or slight slide). No rotating or turning the product, no people, no hands, no text.
+Return only the instruction."""
+    for mime, data in fotos:
+        try:
+            msg = client.messages.create(model=MODEL, max_tokens=600, messages=[{"role": "user", "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": mime if mime in ("image/jpeg", "image/png", "image/webp", "image/gif") else "image/jpeg",
+                                             "data": base64.b64encode(data).decode()}},
+                {"type": "text", "text": vraag}]}])
+            tekst = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text").strip()
+            uit.append((tekst[:700] + " The product stays exactly the same; no rotation, no people, no text.") if tekst else KL.PROMPT_ECHT)
+        except Exception as ex:
+            print("Beweging bedenken mislukt:", ex)
+            uit.append(KL.PROMPT_ECHT)
+    return uit
+
+
 def _modificaties(v, bronnen: list, base_url: str, shop_name: str, website: str, lang: str, dienst: bool) -> dict:
     b1 = bronnen[0]
     b2 = bronnen[1] if len(bronnen) > 1 else b1
@@ -246,7 +282,15 @@ def _start(video_id: int, base_url: str, shop_name: str, website: str):
                 from . import kling as KL
                 if not KL.klaar():
                     raise RuntimeError("FAL_KEY ontbreekt")
-                jobs = [KL.start(KL.ECHT_MODEL, f, KL.PROMPT_ECHT) for f in fotos]
+                from .models import Media
+                tokens = [t for t in v.media_tokens.split(",") if t]
+                media = {m.token: m for m in db.query(Media).filter(Media.token.in_(tokens)).all()}
+                prompts = beweging_prompts(v.title, v.description, [(media[t].mime, media[t].data) for t in tokens if t in media])
+                if len(prompts) != len(fotos):
+                    prompts = [KL.PROMPT_ECHT] * len(fotos)
+                for f, p in zip(fotos, prompts):
+                    print(f"Video {video_id} beweging: {p[:160]}")
+                jobs = [KL.start(KL.ECHT_MODEL, f, p) for f, p in zip(fotos, prompts)]
                 v.kling = json.dumps({"jobs": jobs, "base_url": base_url, "shop": shop_name, "site": website,
                                       "dienst": dienst, "gestart": time.time()})
                 db.commit()
