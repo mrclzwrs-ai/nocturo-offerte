@@ -280,3 +280,7 @@ svg.uil{display:block;overflow:visible}
 .kt-app.aan .kt-wie img{border-color:var(--turq)}
 .kt-app .kt-wie span{font-size:13px;color:var(--grijs)}
 .kt-cr .kt-wie img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--turq);margin-right:6px;vertical-align:middle}
+.kt-meer h2{margin:0 0 12px;font-size:17px}
+.kt-meer.op{border-color:var(--oranje,#F5A623)}
+.kt-meer-knoppen{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.kt-meer-knoppen form{margin:0}

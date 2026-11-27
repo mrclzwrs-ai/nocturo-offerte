@@ -12,6 +12,11 @@ Pling: het eerste jaar gratis tijdens de proef in Oost-Nederland.
 from datetime import datetime
 
 PRIJS_CONTROLROOM = 49.0
+# Video Ads Plus (40 filmpjes per maand) en bijkopen per 10 (27 nov 2026)
+PRIJS_PLUS = 59.0
+PLUS_PER_MAAND = 40
+PRIJS_EXTRA = 25.0
+EXTRA_PAKKET = 10
 
 APPS = [
     {"key": "search", "name": "Search & Analyze", "price": 12.5, "url": "/search"},
@@ -19,7 +24,7 @@ APPS = [
     {"key": "video", "name": "Video Ads", "price": 29.0, "url": "/video"},
     {"key": "pling", "name": "Pling", "price": 12.5, "url": "https://nocturoapps.com/pling/"},
 ]
-APP_KEYS = [a["key"] for a in APPS] + ["controlroom"]
+APP_KEYS = [a["key"] for a in APPS] + ["controlroom", "videoplus"]
 # Welke apps een klant in zijn kantoor ziet, naar wie hij verkoopt
 DOELGROEP_APPS = {
     "b2b": ["search", "offerte", "video"],
@@ -49,6 +54,8 @@ def app_status(company, subs: dict, key: str) -> str:
         sub = subs.get("offerte")
         return "aangevraagd" if sub and sub.status == "aangevraagd" else "verlopen"
     sub = subs.get(key)
+    if key == "video" and subs.get("videoplus") and subs["videoplus"].status == "actief":
+        return "actief"
     if sub and sub.status in ("actief", "aangevraagd"):
         return sub.status
     if key == "pling":
@@ -70,9 +77,10 @@ def maandbedrag(company, subs: dict) -> float:
     if subs.get("controlroom") and subs["controlroom"].status == "actief":
         return PRIJS_CONTROLROOM
     tot = 0.0
+    plus = bool(subs.get("videoplus") and subs["videoplus"].status == "actief")
     for a in APPS:
         if app_status(company, subs, a["key"]) == "actief":
-            tot += a["price"]
+            tot += PRIJS_PLUS if (a["key"] == "video" and plus) else a["price"]
     return tot
 
 
@@ -350,6 +358,30 @@ TEKSTEN.update({
 
 _IDX = {"nl": 0, "en": 1, "de": 2, "fr": 3, "es": 4}
 
+
+TEKSTEN.update({
+    "v_meer_t": ["Meer filmpjes nodig?", "Need more videos?", "Mehr Videos nötig?", "Besoin de plus de vidéos ?", "¿Necesitas más vídeos?"],
+    "v_op_t": ["Je filmpjes voor deze maand zijn op. Wat wil je doen?", "You've used this month's videos. What would you like to do?",
+               "Ihre Videos für diesen Monat sind aufgebraucht. Was möchten Sie tun?", "Vos vidéos du mois sont épuisées. Que voulez-vous faire ?",
+               "Has usado los vídeos de este mes. ¿Qué quieres hacer?"],
+    "v_extra_btn": ["10 extra filmpjes · € 25 eenmalig", "10 extra videos · € 25 one-off", "10 Extra-Videos · € 25 einmalig",
+                    "10 vidéos en plus · 25 € une fois", "10 vídeos extra · 25 € una vez"],
+    "v_plus_btn": ["Video Ads Plus · 40 per maand voor € 59", "Video Ads Plus · 40 a month for € 59", "Video Ads Plus · 40 pro Monat für € 59",
+                   "Video Ads Plus · 40 par mois pour 59 €", "Video Ads Plus · 40 al mes por 59 €"],
+    "v_meer_hint": ["Met Plus betaal je per filmpje het minst. Extra filmpjes gelden voor deze maand.",
+                    "Plus gives you the lowest price per video. Extra videos are for this month.",
+                    "Mit Plus zahlen Sie pro Video am wenigsten. Extra-Videos gelten für diesen Monat.",
+                    "Avec Plus, chaque vidéo vous coûte le moins cher. Les vidéos en plus valent pour ce mois-ci.",
+                    "Con Plus pagas menos por vídeo. Los vídeos extra valen para este mes."],
+    "v_plus_aan": ["Je hebt Video Ads Plus: 40 filmpjes per maand.", "You have Video Ads Plus: 40 videos a month.",
+                   "Sie haben Video Ads Plus: 40 Videos pro Monat.", "Vous avez Video Ads Plus : 40 vidéos par mois.",
+                   "Tienes Video Ads Plus: 40 vídeos al mes."],
+    "v_plus_wacht": ["Je aanvraag voor Plus is binnen. We zetten het aan zodra de betaling rond is.",
+                     "Your Plus request is in. We'll switch it on as soon as the payment is done.",
+                     "Ihre Plus-Anfrage ist da. Wir schalten es frei, sobald die Zahlung erledigt ist.",
+                     "Votre demande Plus est reçue. Nous l'activons dès que le paiement est fait.",
+                     "Tu solicitud de Plus ha llegado. La activamos en cuanto se complete el pago."],
+})
 
 # Robots: elke app heeft zijn eigen collega (zelfde robots als in de promofilm)
 TEKSTEN.update({

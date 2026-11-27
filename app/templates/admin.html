@@ -32,6 +32,7 @@
         <form method="post" action="/beheer/{{ x.id }}" class="knoppen" style="justify-content:flex-end">
           <button class="knop klein" name="action" value="maand">+1 maand betaald</button>
           <button class="knop lijn klein" name="action" value="proef">+14 dagen proef</button>
+          <button class="knop lijn klein" name="action" value="extra10">+10 filmpjes</button>
           <button class="knop gevaar klein" name="action" value="aanuit">{{ 'Uitzetten' if x.is_active else 'Aanzetten' }}</button>
         </form>
       </td>

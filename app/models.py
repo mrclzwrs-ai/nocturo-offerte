@@ -142,6 +142,16 @@ class AppSub(Base):
     updated_at = Column(DateTime, default=datetime.utcnow)
 
 
+class VideoExtra(Base):
+    """Bijgekochte filmpjes (pakket van 10), gelden voor de maand waarin ze gekocht zijn."""
+    __tablename__ = "nocturo_video_extra"
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    maand = Column(String(7), nullable=False)   # JJJJ-MM
+    aantal = Column(Integer, default=10)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class SAProfiel(Base):
     """Search & Analyze-instellingen van één klant."""
     __tablename__ = "nocturo_sa_profiel"

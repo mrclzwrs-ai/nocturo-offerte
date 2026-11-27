@@ -18,7 +18,7 @@ from . import ai
 from .calc import lines_of, notes_of, totals
 from .i18n import LANGS, LANG_NAMES, STEPS, d, date_str, money, number, t
 from .mailer import mail_ready, send_quote_mail
-from .models import AppSub, Company, Media, Product, Quote, SAProfiel, SALead, SessionLocal, Video, WebsiteCheck, init_db
+from .models import AppSub, Company, Media, Product, Quote, SAProfiel, SALead, SessionLocal, Video, VideoExtra, WebsiteCheck, init_db
 from . import check as WC
 from .vragen import vragen_in
 from .handleiding import handleiding_in
@@ -439,10 +439,11 @@ def _meld_aan_marcel(company, app_key: str):
         msg["From"] = os.environ.get("SMTP_FROM") or os.environ.get("SMTP_USER")
         msg["To"] = ADMIN_EMAIL
         msg["Reply-To"] = company.email
-        naam = {a["key"]: a["name"] for a in K.APPS}.get(app_key, "de hele control room")
+        naam = {a["key"]: a["name"] for a in K.APPS}.get(app_key) or {
+            "videoplus": "Video Ads Plus (40 filmpjes)", "extra10": "10 extra filmpjes (eenmalig)"}.get(app_key, "de hele control room")
         msg["Subject"] = f"Nocturo: {company.name} wil {naam} huren"
         msg.set_content(f"{company.name} ({company.email}) heeft in het kantoor gevraagd om {naam}.\n\n"
-                        f"Zet de app aan via /beheer zodra het geregeld is.")
+                        f"Zet het aan via /beheer zodra de betaling binnen is.")
         with smtplib.SMTP(os.environ["SMTP_HOST"], int(os.environ.get("SMTP_PORT", "587")), timeout=30) as sm:
             sm.starttls()
             sm.login(os.environ["SMTP_USER"], os.environ["SMTP_PASSWORD"])
@@ -469,8 +470,11 @@ def kantoor_huur(app_key: str, request: Request, db=Depends(get_db)):
         sub.updated_at = datetime.utcnow()
         db.commit()
         _meld_aan_marcel(c, app_key)
+    link = betaallink(app_key, c)
+    if link:
+        return RedirectResponse(link, status_code=303)
     flash(request, K.k("request_ok", lang))
-    return go("/kantoor")
+    return go("/video" if app_key == "videoplus" else "/kantoor")
 
 
 # ---------- toegang tot de apps ----------
@@ -489,6 +493,28 @@ def heeft_app(db, c, key: str) -> bool:
     return bool(subs.get(key) and subs[key].status == "actief")
 
 
+def video_plus(db, c) -> bool:
+    subs = subs_van(db, c)
+    return bool(subs.get("videoplus") and subs["videoplus"].status == "actief")
+
+
+# Betaallinks (Stripe Payment Links van TagPoint). Leeg = nog niet ingesteld, dan blijft het een aanvraag.
+STRIPE_LINKS = {
+    "search": "STRIPE_LINK_APP", "offerte": "STRIPE_LINK_APP", "pling": "STRIPE_LINK_APP",
+    "video": "STRIPE_LINK_VIDEO", "videoplus": "STRIPE_LINK_PLUS",
+    "controlroom": "STRIPE_LINK_CONTROLROOM", "extra10": "STRIPE_LINK_EXTRA10",
+}
+
+
+def betaallink(key: str, c) -> str:
+    from urllib.parse import urlencode
+    url = (os.environ.get(STRIPE_LINKS.get(key, ""), "") or "").strip()
+    if not url:
+        return ""
+    return url + ("&" if "?" in url else "?") + urlencode({"prefilled_email": c.email or "",
+                                                            "client_reference_id": f"nocturo-{c.id}-{key}"})
+
+
 @app.get("/media/{token}")
 def media(token: str, db=Depends(get_db)):
     m = db.query(Media).filter(Media.token == token).first()
@@ -504,13 +530,14 @@ def video_page(request: Request, db=Depends(get_db)):
     actief = heeft_app(db, c, "video")
     videos = db.query(Video).filter(Video.company_id == c.id).order_by(Video.created_at.desc()).limit(60).all()
     VA.ververs(db, videos)
-    over, limiet = VA.tegoed(db, c.id, actief)
+    over, limiet = VA.tegoed(db, c.id, actief, video_plus(db, c))
     bezig = any(v.status in ("pending", "processing") for v in videos)
     qp = request.query_params
     vooraf = {"titel": qp.get("titel", "")[:120], "omschrijving": qp.get("omschrijving", "")[:2000],
               "winkel": qp.get("winkel", "")[:255] or c.name, "site": qp.get("site", "")[:255] or (c.website or "")}
     return render(request, "video.html", c, lang, videos=videos, actief=actief, over=over, limiet=limiet, vooraf=vooraf, muziek=VA.MUZIEK,
-                  bezig=bezig, va_klaar=VA.klaar())
+                  bezig=bezig, va_klaar=VA.klaar(), plus=video_plus(db, c),
+                  plus_aangevraagd=bool(subs_van(db, c).get("videoplus") and subs_van(db, c)["videoplus"].status == "aangevraagd"))
 
 
 @app.post("/video/nieuw")
@@ -520,7 +547,7 @@ async def video_nieuw(request: Request, title: str = Form(...), price: str = For
     if c.is_demo:
         return go("/aanmelden")
     actief = heeft_app(db, c, "video")
-    over, _ = VA.tegoed(db, c.id, actief)
+    over, _ = VA.tegoed(db, c.id, actief, video_plus(db, c))
     if over <= 0:
         flash(request, K.k("v_limit" if actief else "v_trial_over", lang), "fout")
         return go("/video")
@@ -560,6 +587,20 @@ async def video_nieuw(request: Request, title: str = Form(...), price: str = For
 
 
 
+@app.post("/video/extra")
+def video_extra(request: Request, db=Depends(get_db)):
+    """10 extra filmpjes bijkopen: naar de betaallink, en Marcel krijgt een seintje."""
+    c, lang = company_ctx(request, db)
+    if c.is_demo:
+        return go("/aanmelden")
+    _meld_aan_marcel(c, "extra10")
+    link = betaallink("extra10", c)
+    if link:
+        return RedirectResponse(link, status_code=303)
+    flash(request, K.k("request_ok", lang))
+    return go("/video")
+
+
 @app.get("/video/{vid}/download")
 def video_download(vid: int, request: Request, db=Depends(get_db)):
     """Het filmpje als bestand downloaden (de CDN-link opent alleen in de browser)."""
@@ -589,7 +630,7 @@ def video_opnieuw(vid: int, request: Request, db=Depends(get_db)):
     if not v or v.company_id != c.id or v.status != "failed":
         return go("/video")
     actief = heeft_app(db, c, "video")
-    over, _ = VA.tegoed(db, c.id, actief)
+    over, _ = VA.tegoed(db, c.id, actief, video_plus(db, c))
     if over <= 0:
         flash(request, K.k("v_limit" if actief else "v_trial_over", lang), "fout")
         return go("/video")
@@ -1162,7 +1203,7 @@ def admin_page(request: Request, db=Depends(get_db)):
     subs = {}
     for s_ in db.query(AppSub).all():
         subs.setdefault(s_.company_id, {})[s_.app] = s_.status
-    apps = [(a["key"], a["name"]) for a in K.APPS] + [("controlroom", "Control room"),
+    apps = [(a["key"], a["name"]) for a in K.APPS] + [("videoplus", "Video Ads Plus (40)"), ("controlroom", "Control room"),
                                                        (K.VRIEND, "Vriendenaccount (alles gratis)")]
     return render(request, "admin.html", c, c.lang, companies=companies, counts=counts, now=datetime.utcnow(),
                   subs=subs, apps=apps)
@@ -1180,6 +1221,8 @@ def admin_action(cid: int, request: Request, action: str = Form(...), db=Depends
         x.paid_until = start + timedelta(days=31)
     elif action == "proef":
         x.trial_ends = max(x.trial_ends or now, now) + timedelta(days=14)
+    elif action == "extra10":
+        db.add(VideoExtra(company_id=x.id, maand=now.strftime("%Y-%m"), aantal=10))
     elif action == "aanuit":
         x.is_active = not x.is_active
     elif action.startswith("app:"):

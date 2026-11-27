@@ -80,10 +80,18 @@ def gebruikt_totaal(db, company_id) -> int:
     return db.query(Video).filter(Video.company_id == company_id, Video.status != "failed").count()
 
 
-def tegoed(db, company_id, actief: bool) -> tuple[int, int]:
-    """(nog over, limiet)"""
+def extra_deze_maand(db, company_id) -> int:
+    from .models import VideoExtra
+    maand = datetime.utcnow().strftime("%Y-%m")
+    return sum(x.aantal or 0 for x in db.query(VideoExtra).filter(VideoExtra.company_id == company_id,
+                                                                   VideoExtra.maand == maand).all())
+
+
+def tegoed(db, company_id, actief: bool, plus: bool = False) -> tuple[int, int]:
+    """(nog over, limiet). Plus = 40 per maand; bijgekochte pakketten tellen deze maand mee."""
     if actief:
-        return max(0, PER_MAAND - gebruikt_deze_maand(db, company_id)), PER_MAAND
+        limiet = (40 if plus else PER_MAAND) + extra_deze_maand(db, company_id)
+        return max(0, limiet - gebruikt_deze_maand(db, company_id)), limiet
     return max(0, PROEF - gebruikt_totaal(db, company_id)), PROEF
 
 
