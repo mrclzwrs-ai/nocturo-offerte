@@ -306,3 +306,5 @@ input,textarea,select{background:#FCFBF8}
 .bezig{background:rgba(247,244,238,.96)}
 .kt-app.uit{border-color:#D9D2C5}
 .wc-punt{background:#FCFBF8}
+/* bovenbalk niet onder de klok/batterij van iPad/iPhone (app op beginscherm) */
+.kop{padding-top:env(safe-area-inset-top)}
