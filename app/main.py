@@ -1424,12 +1424,13 @@ def klanten_page(request: Request, db=Depends(get_db)):
 
 @app.post("/klanten")
 def klanten_nieuw(request: Request, naam: str = Form(...), website: str = Form(...), doel: str = Form("klanten"),
-                  wens: str = Form(""), db=Depends(get_db)):
+                  wens: str = Form(""), doeltaal: str = Form(""), kanalen: str = Form(""), db=Depends(get_db)):
     c, lang = company_ctx(request, db)
     if c.is_demo:
         return go("/aanmelden")
     k = Klant(company_id=c.id, naam=naam.strip()[:255], website=website.strip()[:255],
-              doel=doel if doel in KLT.DOELEN else "klanten", wens=wens.strip()[:1000], lang=lang)
+              doel=doel if doel in KLT.DOELEN else "klanten", wens=wens.strip()[:1000], lang=lang,
+              doeltaal=doeltaal if doeltaal in ("nl", "en", "de", "fr", "es") else "", kanalen=kanalen.strip()[:1500])
     db.add(k)
     db.commit()
     KLT.start(k.id)

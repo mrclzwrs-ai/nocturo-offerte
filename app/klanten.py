@@ -23,7 +23,7 @@ TOOL = {
             "kanalen": {"type": "array", "description": "Alle relevante kanalen, ook waar ze nog NIET zijn. Status alleen 'aanwezig' als de link in de gevonden sociale links staat; anders 'niet gevonden'. Volgers nooit gokken.",
                         "items": {"type": "object", "properties": {
                             "kanaal": {"type": "string", "enum": KANALEN},
-                            "status": {"type": "string", "enum": ["aanwezig", "niet gevonden"]},
+                            "status": {"type": "string", "enum": ["aanwezig", "niet gevonden"], "description": "'aanwezig' als het kanaal in de gevonden of door de gebruiker opgegeven links staat; anders 'niet gevonden'."},
                             "advies": {"type": "string", "description": "Past dit kanaal en wat te doen, 1-2 zinnen."}},
                             "required": ["kanaal", "status", "advies"]}},
             "berichten": {"type": "array", "description": "4-6 kant-en-klare stukken voor de beste kanalen: geen filmpjes maar tekst (post, verhaal, uitleg, draadje, brief, mail). Reddit: behulpzaam, geen reclame.",
@@ -72,10 +72,16 @@ def _maak(k_id: int):
                       "spreek de gebruiker aan met 'je'. Baseer je ALLEEN op de websitetekst; verzin geen producten, prijzen of feiten. "
                       "Beloof nooit omzet of aantallen. Kijk breder dan filmpjes: het gaat om de hele verkoopstrategie. Eerst verkoop je jezelf "
                       "(profilering, vertrouwen), daarna je product. Bekijk alle kanalen (social media, Google, mail, brieven) en maak kant-en-klare teksten.")
+            doel_taal = TAALNAAM.get(k.doeltaal or "", "") or "de taal van de website (en anders " + taal + ")"
+            system += ("\n\nTAAL: alle uitleg en adviezen in het " + taal + ". Maar de velden 'berichten' (tekst én plaatsinstructie blijven: tekst in "
+                       "de doeltaal, plaatsinstructie in het " + taal + "), 'filmpjes' en 'voorstel_tekst' schrijf je in: " + doel_taal + ". "
+                       "EERLIJKHEID: schrijf berichten altijd eerlijk vanuit de maker/het bedrijf zelf. Doe NOOIT alsof je een klant, winkelier of "
+                       "buitenstaander bent en verzin geen eigen ervaringen. Noem geen stapnummers of namen van een verkoopmethode in de tekst.")
             system = met_methode(system, "gebruik de verkoopmethode voor het plan en de filmpjes: herkenbare opening, behoefte wekken, voordelen, bezwaren wegnemen, duidelijke volgende stap.")
             user = (f"Klant: {k.naam}\nWebsite: {site['start']}\nDoel: {DOELTEKST.get(k.doel, k.doel)}\n"
                     f"Extra wens van de gebruiker: {k.wens or '-'}\n"
-                    f"Sociale links gevonden op de website: {json.dumps(site.get('socials', {}), ensure_ascii=False) or 'geen'}\n\nTekst van de website (per pagina):\n"
+                    f"Sociale links gevonden op de website: {json.dumps(site.get('socials', {}), ensure_ascii=False) or 'geen'}\n"
+                    f"Kanalen die de gebruiker zelf opgaf: {k.kanalen or '-'}\n\nTekst van de website (per pagina):\n"
                     + json.dumps(site["paginas"], ensure_ascii=False))
             k.plan = json.dumps(_call_tool(system, user, TOOL, max_tokens=9000), ensure_ascii=False)
             k.status = "klaar"
