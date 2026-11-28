@@ -1419,7 +1419,12 @@ from urllib.parse import quote as _q
 def klanten_page(request: Request, db=Depends(get_db)):
     c, lang = company_ctx(request, db)
     lijst = db.query(Klant).filter(Klant.company_id == c.id).order_by(Klant.id.desc()).all()
-    return render(request, "klanten.html", c, lang, lijst=lijst, doelen=KLT.DOELEN)
+    return render(request, "klanten.html", c, lang, lijst=lijst, doelen=KLT.DOELEN,
+                  kl_over=max(0, _kl_max(db, c) - KLT.deze_maand(db, c.id)), kl_max=_kl_max(db, c))
+
+
+def _kl_max(db, c):
+    return KLT.MAX_PLUS if video_plus(db, c) else KLT.MAX_PER_MAAND
 
 
 @app.post("/klanten")
@@ -1428,6 +1433,9 @@ def klanten_nieuw(request: Request, naam: str = Form(...), website: str = Form(.
     c, lang = company_ctx(request, db)
     if c.is_demo:
         return go("/aanmelden")
+    if KLT.deze_maand(db, c.id) >= _kl_max(db, c):
+        flash(request, K.k("kl_limiet", lang, n=_kl_max(db, c)), "fout")
+        return go("/klanten")
     k = Klant(company_id=c.id, naam=naam.strip()[:255], website=website.strip()[:255],
               doel=doel if doel in KLT.DOELEN else "klanten", wens=wens.strip()[:1000], lang=lang,
               doeltaal=doeltaal if doeltaal in ("nl", "en", "de", "fr", "es") else "", kanalen=kanalen.strip()[:1500])

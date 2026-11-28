@@ -5,6 +5,18 @@ import threading
 from .check import lees_website, TAALNAAM
 from .models import Klant, SessionLocal
 
+MAX_PER_MAAND = 10   # zoveel analyses per bedrijf per maand (kosten: zoeken + schrijven)
+MAX_PLUS = 25        # met het hogere abonnement (Plus)
+
+
+def deze_maand(db, company_id: int) -> int:
+    from datetime import datetime
+    nu = datetime.utcnow()
+    begin = datetime(nu.year, nu.month, 1)
+    return db.query(Klant).filter(Klant.company_id == company_id, Klant.created_at >= begin,
+                                  Klant.status != "failed").count()
+
+
 DOELEN = ["publiek", "klanten", "verkoop", "bekend", "anders"]
 
 KANALEN = ["Instagram","Facebook","TikTok","YouTube","LinkedIn","X","Threads","Reddit","Pinterest","Google","E-mail","Brief","Website"]
@@ -87,11 +99,21 @@ def _maak(k_id: int):
                     f"Kanalen die de gebruiker zelf opgaf: {k.kanalen or '-'}\n\nTekst van de website (per pagina):\n"
                     + json.dumps(site["paginas"], ensure_ascii=False))
             try:
-                uitslag = _call_tool(system, user, TOOL, max_tokens=12000, zoeken=6)
+                uitslag = _call_tool(system, user, TOOL, max_tokens=14000, zoeken=15)
             except Exception as ex:
                 # zoekmachine niet beschikbaar: dan zonder zoeken, alleen op de website
                 print(f"Klant {k_id}: zoeken mislukt, verder zonder:", ex)
-                uitslag = _call_tool(system, user, TOOL, max_tokens=12000)
+                uitslag = _call_tool(system, user, TOOL, max_tokens=14000)
+            # Tweede ronde: een ervaren collega leest het plan na en scherpt het aan.
+            try:
+                nalees = (system + "\n\nTWEEDE RONDE: je bent de ervaren verkoopleider die het plan van het team naleest. "
+                          "Maak het concreter en scherper: haal algemeenheden weg, controleer dat elk advies past bij DIT bedrijf, "
+                          "dat de berichten eerlijk en in de juiste taal zijn, en dat de volgorde van het plan logisch is. "
+                          "Houd wat goed is; verzin geen nieuwe feiten. Geef het volledige verbeterde plan terug via de tool.")
+                uitslag = _call_tool(nalees, user + "\n\nPLAN VAN HET TEAM (om na te lezen en te verbeteren):\n"
+                                     + json.dumps(uitslag, ensure_ascii=False), TOOL, max_tokens=14000)
+            except Exception as ex:
+                print(f"Klant {k_id}: tweede ronde mislukt, eerste plan blijft:", ex)
             k.plan = json.dumps(uitslag, ensure_ascii=False)
             k.status = "klaar"
         except Exception as ex:

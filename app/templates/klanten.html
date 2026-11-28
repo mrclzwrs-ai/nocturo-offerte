@@ -25,7 +25,8 @@
       <select name="doeltaal"><option value="">{{ K('kl_taal_auto') }}</option>
         {% for code, naam in [('en','English'),('nl','Nederlands'),('de','Deutsch'),('fr','Français'),('es','Español')] %}<option value="{{ code }}">{{ naam }}</option>{% endfor %}
       </select><small class="hint">{{ K('kl_doeltaal_uitleg') }}</small></div>
-    <button class="knop groot">{{ K('kl_start') }}</button>
+    <p class="hint">{{ K('kl_teller', o=kl_over, n=kl_max) }}</p>
+    <button class="knop groot" {{ 'disabled' if kl_over <= 0 }}>{{ K('kl_start') }}</button>
   </form>
 </section>
 
