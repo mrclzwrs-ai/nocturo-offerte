@@ -310,3 +310,7 @@ input,textarea,select{background:#FCFBF8}
 .kop{padding-top:env(safe-area-inset-top)}
 /* geen glas-/blureffect meer op de bovenbalk: gewoon strak wit, scherp leesbaar */
 .kop{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none}
+/* menu bovenaan: niet afbreken en beter leesbaar */
+.nav a{white-space:nowrap;color:#3F4B55}
+.merk span{white-space:nowrap}
+@media(max-width:1300px){.klokjes{display:none}}

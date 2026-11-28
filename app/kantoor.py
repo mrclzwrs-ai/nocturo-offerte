@@ -509,11 +509,11 @@ TEKSTEN.update({
 
 TEKSTEN.update({
     "kl_titel": ["Voor wie werk je?", "Who are you working for?", "Für wen arbeiten Sie?", "Pour qui travaillez-vous ?", "¿Para quién trabajas?"],
-    "kl_uitleg": ["Werk je voor een ander bedrijf? Vul het hier in. Het hele team bekijkt de website en maakt een voorstel met filmpjes om het doel te halen.",
-                  "Working for another business? Add it here. The whole team studies the website and prepares a proposal with videos to reach the goal.",
-                  "Arbeiten Sie für ein anderes Unternehmen? Tragen Sie es hier ein. Das ganze Team prüft die Website und macht einen Vorschlag mit Videos.",
-                  "Vous travaillez pour une autre entreprise ? Ajoutez-la ici. Toute l'équipe étudie le site et prépare une proposition avec des vidéos.",
-                  "¿Trabajas para otra empresa? Añádela aquí. Todo el equipo estudia la web y prepara una propuesta con vídeos."],
+    "kl_uitleg": ["Voor jezelf of voor een ander bedrijf: vul het hier in. Het hele team analyseert het bedrijf en maakt een compleet verkoopplan: hoe je jezelf profileert, hoe je je product verkoopt, op welke kanalen, met kant-en-klare berichten.",
+                  "For yourself or another business: add it here. The whole team analyses the business and builds a complete sales plan: how to present yourself, how to sell your product, on which channels, with ready-made posts.",
+                  "Für sich selbst oder ein anderes Unternehmen: hier eintragen. Das ganze Team analysiert das Unternehmen und erstellt einen kompletten Verkaufsplan: Auftritt, Produktverkauf, Kanäle und fertige Beiträge.",
+                  "Pour vous ou pour une autre entreprise : ajoutez-la ici. Toute l'équipe analyse l'entreprise et prépare un plan de vente complet : votre image, la vente du produit, les canaux et des messages prêts à publier.",
+                  "Para ti o para otra empresa: añádela aquí. Todo el equipo analiza el negocio y prepara un plan de ventas completo: tu imagen, cómo vender tu producto, en qué canales y con mensajes listos."],
     "kl_naam": ["Naam van het bedrijf", "Business name", "Name des Unternehmens", "Nom de l'entreprise", "Nombre de la empresa"],
     "kl_site": ["Website", "Website", "Website", "Site web", "Sitio web"],
     "kl_doel": ["Wat wil je bereiken?", "What do you want to achieve?", "Was möchten Sie erreichen?", "Que voulez-vous obtenir ?", "¿Qué quieres conseguir?"],
