@@ -1429,7 +1429,7 @@ def _kl_max(db, c):
 
 @app.post("/klanten")
 def klanten_nieuw(request: Request, naam: str = Form(...), website: str = Form(...), doel: str = Form("klanten"),
-                  wens: str = Form(""), doeltaal: str = Form(""), kanalen: str = Form(""), db=Depends(get_db)):
+                  wens: str = Form(""), doeltaal: str = Form(""), kanalen: str = Form(""), diepte: str = Form("snel"), db=Depends(get_db)):
     c, lang = company_ctx(request, db)
     if c.is_demo:
         return go("/aanmelden")
@@ -1438,7 +1438,8 @@ def klanten_nieuw(request: Request, naam: str = Form(...), website: str = Form(.
         return go("/klanten")
     k = Klant(company_id=c.id, naam=naam.strip()[:255], website=website.strip()[:255],
               doel=doel if doel in KLT.DOELEN else "klanten", wens=wens.strip()[:1000], lang=lang,
-              doeltaal=doeltaal if doeltaal in ("nl", "en", "de", "fr", "es") else "", kanalen=kanalen.strip()[:1500])
+              doeltaal=doeltaal if doeltaal in ("nl", "en", "de", "fr", "es") else "", kanalen=kanalen.strip()[:1500],
+              diepte="grondig" if diepte == "grondig" else "snel")
     db.add(k)
     db.commit()
     KLT.start(k.id)

@@ -35,6 +35,14 @@
 </section>
 
 {% set rb = {'speurder':'search','analist':'check','regisseur':'video','boekhouder':'offerte'} %}
+{% if plan.doel %}
+<section class="paneel" style="border:2px solid var(--turq)">
+  <h2 style="color:var(--turq)">{{ K('kl_doel_kop') }}</h2>
+  <p style="font-size:19px;font-weight:600;margin:0 0 8px">{{ plan.doel.omschrijving }}</p>
+  <p style="margin:4px 0"><b>{{ K('kl_doel_meten') }}</b> {{ plan.doel.zo_meten }}</p>
+  <p style="margin:4px 0"><b>{{ K('kl_doel_termijn') }}</b> {{ plan.doel.termijn }}</p>
+</section>
+{% endif %}
 {% if plan.wie_ben_je %}
 <section class="paneel">
   <h2>{{ K('kl_wie') }}</h2>

@@ -25,6 +25,11 @@
       <select name="doeltaal"><option value="">{{ K('kl_taal_auto') }}</option>
         {% for code, naam in [('en','English'),('nl','Nederlands'),('de','Deutsch'),('fr','Français'),('es','Español')] %}<option value="{{ code }}">{{ naam }}</option>{% endfor %}
       </select><small class="hint">{{ K('kl_doeltaal_uitleg') }}</small></div>
+    <div class="veld"><label>{{ K('kl_diepte') }}</label>
+      <div class="stemkeus">
+        <label class="muz"><input type="radio" name="diepte" value="snel" checked><span><b>{{ K('kl_snel') }}</b><small>{{ K('kl_snel_uitleg') }}</small></span></label>
+        <label class="muz"><input type="radio" name="diepte" value="grondig"><span><b>{{ K('kl_grondig') }}</b><small>{{ K('kl_grondig_uitleg') }}</small></span></label>
+      </div><small class="hint">{{ K('kl_mail_info') }}</small></div>
     <p class="hint">{{ K('kl_teller', o=kl_over, n=kl_max) }}</p>
     <button class="knop groot" {{ 'disabled' if kl_over <= 0 }}>{{ K('kl_start') }}</button>
   </form>

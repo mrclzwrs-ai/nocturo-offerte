@@ -213,6 +213,7 @@ class Klant(Base):
     lang = Column(String(5), default="nl")
     doeltaal = Column(String(5), default="")          # taal van de berichten voor de doelgroep ('' = automatisch)
     kanalen = Column(Text, default="")                # links naar eigen kanalen die de gebruiker zelf opgeeft
+    diepte = Column(String(10), default="grondig")    # snel / grondig
     status = Column(String(20), default="pending")   # pending / processing / klaar / failed
     plan = Column(Text, default="")                   # json met onderzoek en voorstel
     error = Column(Text, default="")
@@ -289,6 +290,7 @@ def init_db():
                 con.execute(_sql("ALTER TABLE nocturo_video ADD COLUMN IF NOT EXISTS beweging TEXT DEFAULT ''"))
                 con.execute(_sql("ALTER TABLE nocturo_klant ADD COLUMN IF NOT EXISTS doeltaal VARCHAR(5) DEFAULT ''"))
                 con.execute(_sql("ALTER TABLE nocturo_klant ADD COLUMN IF NOT EXISTS kanalen TEXT DEFAULT ''"))
+                con.execute(_sql("ALTER TABLE nocturo_klant ADD COLUMN IF NOT EXISTS diepte VARCHAR(10) DEFAULT 'grondig'"))
             else:
                 kols = [r[1] for r in con.execute(_sql("PRAGMA table_info(nocturo_video)"))]
                 if "stijl" not in kols:
@@ -308,6 +310,8 @@ def init_db():
                     con.execute(_sql("ALTER TABLE nocturo_klant ADD COLUMN doeltaal VARCHAR(5) DEFAULT ''"))
                 if kk and "kanalen" not in kk:
                     con.execute(_sql("ALTER TABLE nocturo_klant ADD COLUMN kanalen TEXT DEFAULT ''"))
+                if kk and "diepte" not in kk:
+                    con.execute(_sql("ALTER TABLE nocturo_klant ADD COLUMN diepte VARCHAR(10) DEFAULT 'grondig'"))
                 for kol in ("winkel", "site"):
                     if kol not in kols:
                         con.execute(_sql(f"ALTER TABLE nocturo_video ADD COLUMN {kol} VARCHAR(255) DEFAULT ''"))
