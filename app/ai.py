@@ -85,26 +85,42 @@ def _client():
     return anthropic.Anthropic(api_key=key)
 
 
-def _call_tool(system: str, user: str, tool: dict, max_tokens: int = 4000) -> dict:
+def _call_tool(system: str, user: str, tool: dict, max_tokens: int = 4000, zoeken: int = 0) -> dict:
     # Dit model ondersteunt geen geforceerde tool-keuze; daarom vragen we het
     # dringend in de instructie en proberen we het zo nodig één keer opnieuw.
     client = _client()
     system = system + f"\n\nGeef je antwoord ALTIJD via de tool '{tool['name']}', zonder losse tekst."
+    tools = [tool]
+    if zoeken:
+        # Zoekmachine (server-tool): het model zoekt zelf op internet en antwoordt daarna via de tool.
+        tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": zoeken}, tool]
     for _ in range(2):
-        try:
-            msg = client.messages.create(
-                model=MODEL,
-                max_tokens=max_tokens,
-                system=system,
-                tools=[tool],
-                tool_choice={"type": "auto"},
-                messages=[{"role": "user", "content": user}],
-            )
-        except Exception as e:  # netwerk, sleutel, tegoed
-            raise AIError(str(e)) from e
-        for block in msg.content:
-            if getattr(block, "type", "") == "tool_use" and block.name == tool["name"]:
-                return block.input
+        messages = [{"role": "user", "content": user}]
+        for _ronde in range(4):
+            try:
+                msg = client.messages.create(
+                    model=MODEL,
+                    max_tokens=max_tokens,
+                    system=system,
+                    tools=tools,
+                    tool_choice={"type": "auto"},
+                    messages=messages,
+                )
+            except Exception as e:  # netwerk, sleutel, tegoed
+                raise AIError(str(e)) from e
+            for block in msg.content:
+                if getattr(block, "type", "") == "tool_use" and block.name == tool["name"]:
+                    return block.input
+            if getattr(msg, "stop_reason", "") == "pause_turn":
+                # lange zoekbeurt: laat het model verder gaan waar het was
+                messages = [{"role": "user", "content": user}, {"role": "assistant", "content": msg.content}]
+                continue
+            if zoeken:
+                # klaar met zoeken maar nog geen antwoord: vraag om het antwoord via de tool
+                messages = [{"role": "user", "content": user}, {"role": "assistant", "content": msg.content},
+                            {"role": "user", "content": f"Geef nu je volledige antwoord via de tool '{tool['name']}'."}]
+                continue
+            break
     raise AIError("Geen antwoord van het model")
 
 

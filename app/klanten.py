@@ -20,10 +20,10 @@ TOOL = {
             "jezelf_verkopen": {"type": "array", "items": {"type": "string"}, "description": "3-5 concrete adviezen om de eigenaar/het bedrijf zelf te verkopen (verhaal, gezicht, vertrouwen, reviews)."},
             "product_verkopen": {"type": "array", "items": {"type": "string"}, "description": "3-5 concrete adviezen om het product/de dienst te verkopen (voor wie, probleem, aanbod, prijs, bezwaren)."},
             "ontdekt": {"type": "array", "items": {"type": "string"}, "description": "3-5 opvallende dingen (goed én beter), ook waar klanten nu weglekken."},
-            "kanalen": {"type": "array", "description": "Alle relevante kanalen, ook waar ze nog NIET zijn. Status alleen 'aanwezig' als de link in de gevonden sociale links staat; anders 'niet gevonden'. Volgers nooit gokken.",
+            "kanalen": {"type": "array", "description": "Alle relevante kanalen, ook waar ze nog NIET zijn. 'aanwezig' als je het kanaal vond (website, zoekmachine of opgegeven door de gebruiker); anders 'niet gevonden'. Volgers nooit gokken.",
                         "items": {"type": "object", "properties": {
                             "kanaal": {"type": "string", "enum": KANALEN},
-                            "status": {"type": "string", "enum": ["aanwezig", "niet gevonden"], "description": "'aanwezig' als het kanaal in de gevonden of door de gebruiker opgegeven links staat; anders 'niet gevonden'."},
+                            "status": {"type": "string", "enum": ["aanwezig", "niet gevonden"], "description": "'aanwezig' als je het kanaal vond via website, zoekmachine of de gebruiker; anders 'niet gevonden'."},
                             "advies": {"type": "string", "description": "Past dit kanaal en wat te doen, 1-2 zinnen."}},
                             "required": ["kanaal", "status", "advies"]}},
             "berichten": {"type": "array", "description": "4-6 kant-en-klare stukken voor de beste kanalen: geen filmpjes maar tekst (post, verhaal, uitleg, draadje, brief, mail). Reddit: behulpzaam, geen reclame.",
@@ -69,12 +69,15 @@ def _maak(k_id: int):
             taal = TAALNAAM.get(k.lang, "Nederlands")
             system = ("Je bent het verkoopteam van Nocturo: een ervaren verkoper met een team (Speurder, Analist, Regisseur, Boekhouder). "
                       "Een gebruiker werkt voor een klant en wil diens doel halen. Schrijf alles in het " + taal + ", in gewone, warme taal, "
-                      "spreek de gebruiker aan met 'je'. Baseer je ALLEEN op de websitetekst; verzin geen producten, prijzen of feiten. "
+                      "spreek de gebruiker aan met 'je'. Baseer je op de websitetekst én op wat je zelf opzoekt met de zoekmachine; verzin geen producten, prijzen of feiten. "
                       "Beloof nooit omzet of aantallen. Kijk breder dan filmpjes: het gaat om de hele verkoopstrategie. Eerst verkoop je jezelf "
                       "(profilering, vertrouwen), daarna je product. Bekijk alle kanalen (social media, Google, mail, brieven) en maak kant-en-klare teksten.")
             doel_taal = TAALNAAM.get(k.doeltaal or "", "") or "de taal van de website (en anders " + taal + ")"
             system += ("\n\nTAAL: alle uitleg en adviezen in het " + taal + ". Maar de velden 'berichten' (tekst én plaatsinstructie blijven: tekst in "
                        "de doeltaal, plaatsinstructie in het " + taal + "), 'filmpjes' en 'voorstel_tekst' schrijf je in: " + doel_taal + ". "
+                       "ZOEKEN: gebruik de zoekmachine om het bedrijf op internet op te zoeken: zoek naar hun Instagram, TikTok, YouTube, Facebook, LinkedIn, X, "
+                       "Threads, Reddit, reviews (Google, app store, Trustpilot) en 2-3 concurrenten. Een kanaal is 'aanwezig' als je het vindt "
+                       "(op de site, via zoeken of door de gebruiker opgegeven). Noem in 'ontdekt' wat je over concurrenten en reviews vond. "
                        "EERLIJKHEID: schrijf berichten altijd eerlijk vanuit de maker/het bedrijf zelf. Doe NOOIT alsof je een klant, winkelier of "
                        "buitenstaander bent en verzin geen eigen ervaringen. Noem geen stapnummers of namen van een verkoopmethode in de tekst.")
             system = met_methode(system, "gebruik de verkoopmethode voor het plan en de filmpjes: herkenbare opening, behoefte wekken, voordelen, bezwaren wegnemen, duidelijke volgende stap.")
@@ -83,7 +86,13 @@ def _maak(k_id: int):
                     f"Sociale links gevonden op de website: {json.dumps(site.get('socials', {}), ensure_ascii=False) or 'geen'}\n"
                     f"Kanalen die de gebruiker zelf opgaf: {k.kanalen or '-'}\n\nTekst van de website (per pagina):\n"
                     + json.dumps(site["paginas"], ensure_ascii=False))
-            k.plan = json.dumps(_call_tool(system, user, TOOL, max_tokens=9000), ensure_ascii=False)
+            try:
+                uitslag = _call_tool(system, user, TOOL, max_tokens=12000, zoeken=6)
+            except Exception as ex:
+                # zoekmachine niet beschikbaar: dan zonder zoeken, alleen op de website
+                print(f"Klant {k_id}: zoeken mislukt, verder zonder:", ex)
+                uitslag = _call_tool(system, user, TOOL, max_tokens=12000)
+            k.plan = json.dumps(uitslag, ensure_ascii=False)
             k.status = "klaar"
         except Exception as ex:
             print(f"Klant {k_id} mislukt:", ex)
