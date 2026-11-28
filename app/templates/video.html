@@ -152,4 +152,4 @@
 {% endif %}
 {% endif %}
 {% endblock %}
-{% block scripts %}{% if bezig %}<script>setTimeout(function(){location.reload()},{{ 25000 if (zaal and zaal.clips) else 10000 }});</script>{% endif %}{% endblock %}
+{% block scripts %}{% if bezig %}{% if zaal and zaal.clips %}<script>window.ZAAL_POLL=20000;</script>{% else %}<script>setTimeout(function(){location.reload()},10000);</script>{% endif %}{% endif %}{% endblock %}

@@ -24,7 +24,7 @@
     try{i=(parseInt(sessionStorage.getItem('zaal_i')||'0',10)||0)%c.length;}catch(e){}
     function speel(){v.src='/media/'+c[i];v.play().catch(function(){});}
     v.addEventListener('ended',function(){i=(i+1)%c.length;try{sessionStorage.setItem('zaal_i',i);}catch(e){}speel();});speel();
-    setTimeout(function(){location.reload();},20000);})();
+    window.ZAAL_POLL=15000;})();
   </script>
 </section>
 {% elif k.status == 'failed' %}

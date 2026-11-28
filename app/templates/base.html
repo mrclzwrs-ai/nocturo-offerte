@@ -66,5 +66,31 @@
 })();
 </script>
 {% block scripts %}{% endblock %}
+<script>
+/* Vergaderkamer: robotpiepjes (Web Audio, geen bestanden) + verversen zonder herladen zolang het team bezig is */
+(function(){
+  var v=document.getElementById('zaalvid'); if(!v) return;
+  var box=v.parentNode, ctx=null, aan=false;
+  try{aan=localStorage.getItem('zaal_geluid')==='1';}catch(e){}
+  var k=document.createElement('button'); k.type='button';
+  k.style.cssText='position:absolute;top:12px;right:12px;z-index:3;border:0;border-radius:20px;padding:8px 14px;background:rgba(255,255,255,.93);font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.15);cursor:pointer';
+  function label(){k.textContent=(ctx&&aan)?'🔊':'🔈 '+({nl:'Geluid aan',en:'Sound on',de:'Ton an',fr:'Son',es:'Sonido'}[document.documentElement.lang]||'Geluid aan');}
+  box.appendChild(k); label();
+  function piep(f,t,d){var o=ctx.createOscillator(),g=ctx.createGain();o.type=Math.random()<.5?'square':'sine';
+    o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*(.7+Math.random()*.8),t+d);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+.01);g.gain.exponentialRampToValueAtTime(.0005,t+d);
+    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+d+.02);}
+  var stemmen=[520,700,880,1050,620];
+  function babbel(){if(!ctx||!aan)return;var b=stemmen[Math.floor(Math.random()*stemmen.length)],t=ctx.currentTime+.05,n=4+Math.floor(Math.random()*7);
+    for(var i=0;i<n;i++){var d=.04+Math.random()*.09;piep(b*(.8+Math.random()*.6),t,d);t+=d+.02+Math.random()*.06;}}
+  (function loop(){babbel();setTimeout(loop,1800+Math.random()*2600);})();
+  function start(){try{if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();}ctx.resume();}catch(e){}}
+  k.addEventListener('click',function(){if(ctx&&aan){aan=false;}else{aan=true;start();babbel();}
+    try{localStorage.setItem('zaal_geluid',aan?'1':'0');}catch(e){}label();});
+  if(aan){document.addEventListener('touchstart',function(){start();label();},{once:true});document.addEventListener('click',function(){start();label();},{once:true});}
+  if(window.ZAAL_POLL){(function poll(){setTimeout(function(){fetch(location.href,{credentials:'same-origin',cache:'no-store'}).then(function(r){return r.text();})
+    .then(function(h){if(h.indexOf('id="zaalvid"')<0){location.reload();}else{poll();}}).catch(poll);},window.ZAAL_POLL);})();}
+})();
+</script>
 </body>
 </html>
