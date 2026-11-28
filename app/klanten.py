@@ -77,7 +77,9 @@ def _maak(k_id: int):
         k.status = "processing"
         db.commit()
         try:
+            print(f"[klant {k_id}] start analyse {k.website}", flush=True)
             site = lees_website(k.website)
+            print(f"[klant {k_id}] website gelezen, {len(site['paginas'])} pagina's", flush=True)
             taal = TAALNAAM.get(k.lang, "Nederlands")
             system = ("Je bent het verkoopteam van Nocturo: een ervaren verkoper met een team (Speurder, Analist, Regisseur, Boekhouder). "
                       "Een gebruiker werkt voor een klant en wil diens doel halen. Schrijf alles in het " + taal + ", in gewone, warme taal, "
@@ -104,6 +106,7 @@ def _maak(k_id: int):
                 # zoekmachine niet beschikbaar: dan zonder zoeken, alleen op de website
                 print(f"Klant {k_id}: zoeken mislukt, verder zonder:", ex)
                 uitslag = _call_tool(system, user, TOOL, max_tokens=14000)
+            print(f"[klant {k_id}] eerste plan klaar, tweede ronde", flush=True)
             # Tweede ronde: een ervaren collega leest het plan na en scherpt het aan.
             try:
                 nalees = (system + "\n\nTWEEDE RONDE: je bent de ervaren verkoopleider die het plan van het team naleest. "
@@ -115,9 +118,10 @@ def _maak(k_id: int):
             except Exception as ex:
                 print(f"Klant {k_id}: tweede ronde mislukt, eerste plan blijft:", ex)
             k.plan = json.dumps(uitslag, ensure_ascii=False)
+            print(f"[klant {k_id}] klaar", flush=True)
             k.status = "klaar"
         except Exception as ex:
-            print(f"Klant {k_id} mislukt:", ex)
+            print(f"[klant {k_id}] mislukt:", ex, flush=True)
             k.status, k.error = "failed", str(ex)[:400]
         db.commit()
 
@@ -128,8 +132,10 @@ def start(k_id: int):
 
 def herstel_na_herstart():
     with SessionLocal() as db:
+        from datetime import datetime
         for k in db.query(Klant).filter(Klant.status.in_(["pending", "processing"])).all():
             k.status = "pending"
+            k.created_at = datetime.utcnow()   # waakhond telt opnieuw vanaf de herstart
         db.commit()
         ids = [k.id for k in db.query(Klant).filter(Klant.status == "pending").all()]
     for i in ids:

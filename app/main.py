@@ -1451,6 +1451,9 @@ def klant_page(kid: int, request: Request, db=Depends(get_db)):
     k = db.query(Klant).filter(Klant.id == kid, Klant.company_id == c.id).first()
     if not k:
         return go("/klanten")
+    if k.status in ("pending", "processing") and k.created_at and (datetime.utcnow() - k.created_at).total_seconds() > 40 * 60:
+        k.status, k.error = "failed", "duurde te lang"
+        db.commit()
     plan = {}
     try:
         plan = json.loads(k.plan) if k.plan else {}

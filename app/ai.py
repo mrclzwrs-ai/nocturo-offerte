@@ -98,7 +98,8 @@ def _call_tool(system: str, user: str, tool: dict, max_tokens: int = 4000, zoeke
         messages = [{"role": "user", "content": user}]
         for _ronde in range(4):
             try:
-                msg = client.messages.create(
+                c2 = client.with_options(timeout=480, max_retries=1) if zoeken else client
+                msg = c2.messages.create(
                     model=MODEL,
                     max_tokens=max_tokens,
                     system=system,
@@ -107,7 +108,11 @@ def _call_tool(system: str, user: str, tool: dict, max_tokens: int = 4000, zoeke
                     messages=messages,
                 )
             except Exception as e:  # netwerk, sleutel, tegoed
+                print(f"[ai] {tool['name']}: fout bij aanroep:", str(e)[:300], flush=True)
                 raise AIError(str(e)) from e
+            if zoeken:
+                soorten = [getattr(b, "type", "?") for b in msg.content]
+                print(f"[ai] {tool['name']} ronde {_ronde}: stop={getattr(msg, 'stop_reason', '')} blokken={soorten}", flush=True)
             for block in msg.content:
                 if getattr(block, "type", "") == "tool_use" and block.name == tool["name"]:
                     return block.input
